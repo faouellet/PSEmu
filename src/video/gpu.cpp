@@ -46,9 +46,9 @@ Utils::UInt32 GPU::GetStatus() const
         switch (m_dmaDirection)
         {
             // Always 0
-            case DMADirection::OFF: return 0;
+            case DMADirection::OFF: return 0u;
             // Should be 0 if FIFO is full, 1 otherwise
-            case DMADirection::FIFO: return 1;
+            case DMADirection::FIFO: return 1u;
             // Should be the same as status bit 28
             case DMADirection::CPU_TO_GP0: return (status >> 28) & 1;
             // Should be the same as status bit 28
@@ -113,7 +113,7 @@ void GPU::SetGP0DrawMode(Utils::UInt32 value)
     
 }
 
-void Reset()
+void GPU::Reset()
 {
     m_interrupt = false;
     m_pageBaseX = 0;
@@ -145,8 +145,8 @@ void Reset()
     m_vRes = VerticalRes::Y240LINES;
     m_vMode = VMode::NTSC;
     m_interlaced = true;
-    m_displayHorizStart = 0
-    m_displayHorizEnd = 0
+    m_displayHorizStart = 0;
+    m_displayHorizEnd = 0;
     m_displayLineStart = 0;
     m_displayLineEnd = 0;
     m_displayDepth = DisplayDepth::D15BITS;
