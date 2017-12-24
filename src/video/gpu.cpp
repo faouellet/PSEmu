@@ -206,5 +206,40 @@ void GPU::SetGP0DrawingOffset(Utils::UInt32 value)
     const Utils::UInt16 x = value & 0x7FF;
     const Utils::UInt16 y = (value >> 11) & 0x7FF;
 
-    // FINISH IT
+    // Values are 11 bits two's complement signed values,
+    // we need to shift the value to 16 bits to force sign extension
+    m_drawingOffsetX = static_cast<Utils::Int16>(x << 5) >> 5;
+    m_drawingOffsetY = static_cast<Utils::Int16>(y << 5) >> 5;
+}
+
+void GPU::SetGP0TextureWindow(Utils::UInt32 value)
+{
+    m_textureWindowMaskX = value & 0x1F;
+    m_textureWindowMaskY = (value >> 5) & 0x1F;
+    m_textureWindowOffsetX = (value >> 10) & 0x1F;
+    m_textureWindowOffsetY = (value >> 15) & 0x1F;
+}
+
+void GPU::SetGP0MaskBitSetting(Utils::UInt32 value)
+{
+    m_forceSetMaskBit = (value & 1) != 0;
+    m_preserveMaskedPixels = (value & 2) != 0;
+}
+
+void GPU::GP1DisplayVRAMStart(Utils::UInt32 value)
+{
+    m_displayVRAMStartX = value & 0x3FE;
+    m_displayVRAMStartY = (value >> 10) & 0x1FF;
+}
+
+void GPU::GP1DisplayHorizontalRange(Utils::UInt32 value)
+{
+    m_displayHorizStart = value & 0xFFF;
+    m_displayHorizEnd = (value >> 12) & 0xFFF;
+}
+
+void GPU::GP1DisplayVerticalRange(Utils::UInt32 value)
+{
+    m_displayLineStart = value & 0x3FF;
+    m_displayLineEnd = (value >> 10) & 0x3FF;
 }

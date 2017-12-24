@@ -86,6 +86,11 @@ private:
     void SetGP0DrawingAreaTopLeft(Utils::UInt32 value);
     void SetGP0DrawingAreaBottomRight(Utils::UInt32 value);
     void SetGP0DrawingOffset(Utils::UInt32 value);
+    void SetGP0TextureWindow(Utils::UInt32 value);
+    void SetGP0MaskBitSetting(Utils::UInt32 value);
+    void GP1DisplayVRAMStart(Utils::UInt32 value);
+    void GP1DisplayHorizontalRange(Utils::UInt32 value);
+    void GP1DisplayVerticalRange(Utils::UInt32 value);
 
 private:
     // Texture page base X coordinate (4 bits, 64 byte increment)
