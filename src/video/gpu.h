@@ -25,6 +25,9 @@ enum class Field
 struct HorizontalRes
 {
 public:
+    // TODO: Review this
+    HorizontalRes() = default;
+
     HorizontalRes(Utils::UInt8 hr1, Utils::UInt8 hr2)
     {
         m_resolution = (hr2 & 1) | ((hr1 & 3) << 1);
