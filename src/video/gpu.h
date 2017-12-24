@@ -2,6 +2,7 @@
 #define GPU_H
 
 #include "../utils/types.h"
+#include "commandbuffer.h"
 
 namespace PSEmu
 {
@@ -202,6 +203,14 @@ private:
 
     // Display output horizontal end relative to VSYNC
     Utils::UInt16 m_displayLineEnd;
+
+    // Buffer containing the current GP0 command
+    CommandBuffer m_GP0Command;
+
+    // Remaining words in the current GP0 command
+    Utils::UInt32 m_GP0CommandRemaining;
+
+    
 };
 
 }   // end namespace PSEmu
