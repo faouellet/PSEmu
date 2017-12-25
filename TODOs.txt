@@ -1,0 +1,3 @@
+- Uniformize comments
+- Add CI
+- Add Qt GUI
