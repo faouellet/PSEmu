@@ -2,9 +2,9 @@
 #define DMA_H
 
 #include "channel.h"
-#include "../utils/types.h"
 
 #include <array>
+#include <cstdint>
 
 namespace PSEmu
 {
@@ -41,16 +41,16 @@ public:
     DMA& operator=(DMA&&) = default;
 
 public:
-    Utils::UInt32 DMARegisterRead(Utils::UInt32 offset) const;
-    void DMARegisterWrite(Utils::UInt32 offset, Utils::UInt32 value);
+    uint32_t DMARegisterRead(uint32_t offset) const;
+    void DMARegisterWrite(uint32_t offset, uint32_t value);
 
-    Utils::UInt32 GetControl() const;
-    void SetControl(Utils::UInt32 value);
+    uint32_t GetControl() const;
+    void SetControl(uint32_t value);
 
     bool GetIRQ() const;
 
-    Utils::UInt32 GetInterrupt() const;
-    void SetInterrupt(Utils::UInt32 value);
+    uint32_t GetInterrupt() const;
+    void SetInterrupt(uint32_t value);
 
     Channel& GetChannel(Port port);
     const Channel& GetChannel(Port port) const;
@@ -61,23 +61,23 @@ public:
 
 private:
     // DMA control register
-    Utils::UInt32 m_control;
+    uint32_t m_control;
 
     // Master IRQ enable
     bool m_IRQEnable;
     
     // IRQ enable for individual channels
-    Utils::UInt8 m_channelIRQEnable;
+    uint8_t m_channelIRQEnable;
 
     // IRQ flags for individual channels
-    Utils::UInt8 m_channelIRQFlags;
+    uint8_t m_channelIRQFlags;
 
     // When set the interrupt is active unconditionally
     // (even if m_IRQEnable is false)
     bool m_forceIRQ;
 
     // Bits [0:5] of the interrupt registers
-    Utils::UInt8 m_dummy;
+    uint8_t m_dummy;
 
     // The 7 channel instances
     std::array<Channel, 7> m_channels; 

@@ -7,12 +7,12 @@ using namespace PSEmu;
 namespace
 {
 
-Port IndexToPort(Utils::UInt32 index)
+Port IndexToPort(uint32_t index)
 {
     return static_cast<Port>(index);
 }
 
-Utils::UInt32 PortToIndex(Port port)
+uint32_t PortToIndex(Port port)
 {
     using PortType = std::underlying_type<Port>::type;
     return static_cast<PortType>(port);
@@ -22,12 +22,12 @@ Utils::UInt32 PortToIndex(Port port)
 
 DMA::DMA() : m_control{ 0x7654321 }, m_IRQEnable{}, m_channelIRQEnable{}, m_channelIRQFlags{}, m_forceIRQ{} {}
 
-Utils::UInt32 DMA::DMARegisterRead(Utils::UInt32 offset) const
+uint32_t DMA::DMARegisterRead(uint32_t offset) const
 {
-    const Utils::UInt32 major = (offset & 0x70) >> 4;
-    const Utils::UInt32 minor = offset & 0xF;
+    const uint32_t major = (offset & 0x70) >> 4;
+    const uint32_t minor = offset & 0xF;
 
-    Utils::UInt32 value = 0;
+    uint32_t value = 0;
 
     switch (major)
     {
@@ -71,10 +71,10 @@ Utils::UInt32 DMA::DMARegisterRead(Utils::UInt32 offset) const
     }
 }
 
-void DMA::DMARegisterWrite(Utils::UInt32 offset, Utils::UInt32 value)
+void DMA::DMARegisterWrite(uint32_t offset, uint32_t value)
 {
-    const Utils::UInt32 major = (offset & 0x70) >> 4;
-    const Utils::UInt32 minor = offset & 0xF;
+    const uint32_t major = (offset & 0x70) >> 4;
+    const uint32_t minor = offset & 0xF;
 
     switch (major)
     {
@@ -116,12 +116,12 @@ void DMA::DMARegisterWrite(Utils::UInt32 offset, Utils::UInt32 value)
 }
 
 
-Utils::UInt32 DMA::GetControl() const
+uint32_t DMA::GetControl() const
 {
      return m_control;
 }
 
-void DMA::SetControl(Utils::UInt32 value)
+void DMA::SetControl(uint32_t value)
 {
     m_control = value;
 }
@@ -131,21 +131,21 @@ bool DMA::GetIRQ() const
     return m_forceIRQ || (m_IRQEnable && (m_channelIRQEnable & m_channelIRQFlags));
 }
 
-Utils::UInt32 DMA::GetInterrupt() const
+uint32_t DMA::GetInterrupt() const
 {
-    Utils::UInt32 interrupt;
+    uint32_t interrupt;
 
     interrupt |= m_dummy;
-    interrupt |= static_cast<Utils::UInt32>(m_forceIRQ) << 15;
-    interrupt |= static_cast<Utils::UInt32>(m_channelIRQEnable) << 16;
-    interrupt |= static_cast<Utils::UInt32>(m_IRQEnable) << 23;
-    interrupt |= static_cast<Utils::UInt32>(m_channelIRQFlags) << 24;
-    interrupt |= static_cast<Utils::UInt32>(GetIRQ()) << 31;
+    interrupt |= static_cast<uint32_t>(m_forceIRQ) << 15;
+    interrupt |= static_cast<uint32_t>(m_channelIRQEnable) << 16;
+    interrupt |= static_cast<uint32_t>(m_IRQEnable) << 23;
+    interrupt |= static_cast<uint32_t>(m_channelIRQFlags) << 24;
+    interrupt |= static_cast<uint32_t>(GetIRQ()) << 31;
 
     return interrupt;
 }
 
-void DMA::SetInterrupt(Utils::UInt32 value)
+void DMA::SetInterrupt(uint32_t value)
 {
     m_dummy = (value & 0x3F);
     m_forceIRQ = ((value >> 15) & 1) != 0;
@@ -153,7 +153,7 @@ void DMA::SetInterrupt(Utils::UInt32 value)
     m_IRQEnable = ((value >> 23) & 1) != 0;
 
     // Writing 1 to a flag resets it
-    const Utils::UInt8 ack = (value >> 24) & 0x3F;
+    const uint8_t ack = (value >> 24) & 0x3F;
     m_channelIRQFlags &= !ack;
 }
 
@@ -185,10 +185,10 @@ void DMA::DoMemoryBlockCopy(Port port)
 {
     Channel& chan = GetChannel(port);
 
-    const Utils::Int32 increment = chan.GetStep() == Step::INCREMENT ? 4 : -4;
-    Utils::UInt32& address = chan.GetBase();
+    const int32_t increment = chan.GetStep() == Step::INCREMENT ? 4 : -4;
+    uint32_t& address = chan.GetBase();
 
-    std::optional<Utils::UInt32> remainingSize = chan.GetTransferSize();
+    std::optional<uint32_t> remainingSize = chan.GetTransferSize();
     if (remainingSize == std::nullopt)
     {
         assert(false && "Couldn't figure out DMA block transfer size");
@@ -197,7 +197,7 @@ void DMA::DoMemoryBlockCopy(Port port)
 
     while (remainingSize > 0)
     {
-        Utils::UInt32 curAddr = address & 0x1FFFFC;
+        uint32_t curAddr = address & 0x1FFFFC;
 
         if (chan.GetDirection() == Direction::FROM_RAM)
         {
@@ -206,7 +206,7 @@ void DMA::DoMemoryBlockCopy(Port port)
         }
         else
         {
-            Utils::UInt32 srcWord;
+            uint32_t srcWord;
             if (port == Port::OTC)
             {
                 if (remainingSize == 1)
@@ -238,8 +238,8 @@ void DMA::DoLinkedListCopy(Port port)
 {
     Channel& chan = GetChannel(port);
 
-    const Utils::Int32 increment = chan.GetStep() == Step::INCREMENT ? 4 : -4;
-    Utils::UInt32& address = chan.GetBase();
+    const int32_t increment = chan.GetStep() == Step::INCREMENT ? 4 : -4;
+    uint32_t& address = chan.GetBase();
 
     if (chan.GetDirection() == Direction::TO_RAM)
     {
@@ -256,16 +256,16 @@ void DMA::DoLinkedListCopy(Port port)
     // In linked list mode, each entry starts with a
     // *header* word. The high byte contains the number
     // of words in the *packet* (not counting the header word)
-    Utils::UInt32 header = 0;   // TODO: Load from RAM
+    uint32_t header = 0;   // TODO: Load from RAM
     
     while (header & 0x800000)
     {
-        Utils::UInt32 remainingSize = header >> 24;
+        uint32_t remainingSize = header >> 24;
 
         while (remainingSize > 0)
         {
             address = (address + 4) & 0x1FFFFC;
-            const Utils::UInt32 command = 0; // TODO: Load from RAM
+            const uint32_t command = 0; // TODO: Load from RAM
 
             --remainingSize;
         }

@@ -1,8 +1,7 @@
 #ifndef BIOS_H
 #define BIOS_H
 
-#include "../utils/types.h"
-
+#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -23,11 +22,11 @@ public:
 public:
     bool Init(const std::string& absoluteFilePath);
 
-    Utils::UInt8  LoadByte(Utils::UInt32 offset) const;
-    Utils::UInt32 LoadWord(Utils::UInt32 offset) const;
+    uint8_t  LoadByte(uint32_t offset) const;
+    uint32_t LoadWord(uint32_t offset) const;
 
 private:
-    std::vector<Utils::Byte> m_data;
+    std::vector<uint8_t> m_data;
 };
 
 } // end namespace PSEmu

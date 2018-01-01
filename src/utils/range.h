@@ -1,8 +1,7 @@
 #ifndef RANGE_H
 #define RANGE_H
 
-#include "types.h"
-
+#include <cstdint>
 #include <optional>
 
 namespace Utils
@@ -11,14 +10,14 @@ namespace Utils
 class Range
 {
 public:
-    Range(UInt32 start, UInt32 length);
+    Range(uint32_t start, uint32_t length);
 
 public:
-    std::optional<UInt32> Contains(UInt32 address) const;
+    std::optional<uint32_t> Contains(uint32_t address) const;
 
 private:
-    UInt32 m_start;
-    UInt32 m_length;
+    uint32_t m_start;
+    uint32_t m_length;
 };
 
 }   // end namespace Utils

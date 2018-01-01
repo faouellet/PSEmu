@@ -10,7 +10,7 @@ namespace
 {
 
 // TODO: Document
-Utils::UInt32 GetPhysicalAddress(Utils::UInt32 virtAddr)
+uint32_t GetPhysicalAddress(uint32_t virtAddr)
 {
     return virtAddr & REGION_MASK[virtAddr >> 29];
 }
@@ -19,9 +19,9 @@ Utils::UInt32 GetPhysicalAddress(Utils::UInt32 virtAddr)
 
 Interconnect::Interconnect(BIOS&& bios) : m_bios{ std::move(bios) } { }
 
-Utils::UInt8 Interconnect::LoadByte(Utils::UInt32 address)
+uint8_t Interconnect::LoadByte(uint32_t address)
 {
-    const Utils::UInt32 physAddr = GetPhysicalAddress(address);
+    const uint32_t physAddr = GetPhysicalAddress(address);
 
     if (auto offset = BIOS_RANGE.Contains(physAddr))
     {
@@ -36,9 +36,9 @@ Utils::UInt8 Interconnect::LoadByte(Utils::UInt32 address)
     return 0;
 }
 
-Utils::UInt16 Interconnect::LoadHalfWord(Utils::UInt32 address)
+uint16_t Interconnect::LoadHalfWord(uint32_t address)
 {
-    const Utils::UInt32 physAddr = GetPhysicalAddress(address);
+    const uint32_t physAddr = GetPhysicalAddress(address);
 
     if (auto offset = IRQ_CONTROL_RANGE.Contains(physAddr))
     {
@@ -46,9 +46,9 @@ Utils::UInt16 Interconnect::LoadHalfWord(Utils::UInt32 address)
     }
 }
 
-Utils::UInt32 Interconnect::LoadWord(Utils::UInt32 address)
+uint32_t Interconnect::LoadWord(uint32_t address)
 {
-    const Utils::UInt32 physAddr = GetPhysicalAddress(address);
+    const uint32_t physAddr = GetPhysicalAddress(address);
 
     if (auto offset = BIOS_RANGE.Contains(physAddr))
     {
@@ -81,9 +81,9 @@ Utils::UInt32 Interconnect::LoadWord(Utils::UInt32 address)
     return 0;
 }
 
-void Interconnect::StoreByte(Utils::UInt32 address, Utils::UInt8 value)
+void Interconnect::StoreByte(uint32_t address, uint8_t value)
 {
-    const Utils::UInt32 physAddr = GetPhysicalAddress(address);
+    const uint32_t physAddr = GetPhysicalAddress(address);
 
     if (EXPANSION_2_RANGE.Contains(physAddr) != std::nullopt)
     {
@@ -97,9 +97,9 @@ void Interconnect::StoreByte(Utils::UInt32 address, Utils::UInt8 value)
     // TODO: PANIC !!!
 }
 
-void Interconnect::StoreHalfWord(Utils::UInt32 address, Utils::UInt16 value)
+void Interconnect::StoreHalfWord(uint32_t address, uint16_t value)
 {
-    const Utils::UInt32 physAddr = GetPhysicalAddress(address);
+    const uint32_t physAddr = GetPhysicalAddress(address);
 
     if (SPU_RANGE.Contains(physAddr) != std::nullopt)
     {
@@ -117,9 +117,9 @@ void Interconnect::StoreHalfWord(Utils::UInt32 address, Utils::UInt16 value)
     // TODO: PANIC!!!
 }
 
-void Interconnect::StoreWord(Utils::UInt32 address, Utils::UInt32 value)
+void Interconnect::StoreWord(uint32_t address, uint32_t value)
 {
-    const Utils::UInt32 physAddr = GetPhysicalAddress(address);
+    const uint32_t physAddr = GetPhysicalAddress(address);
 
     if (MEMCONTROL_RANGE.Contains(physAddr) != std::nullopt)
     {

@@ -1,7 +1,6 @@
 #ifndef R3000A_H
 #define R3000A_H
 
-#include "../utils/types.h"
 #include "instructions.h"
 #include "interconnect.h"
 #include "opcodes.h"
@@ -43,15 +42,15 @@ public:
 
 private:
     void InitOpTable();
-    Utils::UInt8 LoadByte(Utils::UInt32 address);
-    Utils::UInt16 LoadHalfWord(Utils::UInt32 address);
-    Utils::UInt32 LoadWord(Utils::UInt32 address);
-    void StoreByte(Utils::UInt32 address, Utils::UInt8 value);
-    void StoreHalfWord(Utils::UInt32 address, Utils::UInt16 value);
-    void StoreWord(Utils::UInt32 address, Utils::UInt32 value);
-    void Branch(Utils::UInt32 offset);
-    bool WouldOverflow(Utils::Int32 lhs, Utils::Int32 rhs, std::function<Utils::Int32(Utils::Int32,Utils::Int32)>&& func) const;
-    void SetRegister(Utils::UInt32 registerIndex, Utils::UInt32 value);
+    uint8_t LoadByte(uint32_t address);
+    uint16_t LoadHalfWord(uint32_t address);
+    uint32_t LoadWord(uint32_t address);
+    void StoreByte(uint32_t address, uint8_t value);
+    void StoreHalfWord(uint32_t address, uint16_t value);
+    void StoreWord(uint32_t address, uint32_t value);
+    void Branch(uint32_t offset);
+    bool WouldOverflow(int32_t lhs, int32_t rhs, std::function<int32_t(int32_t,int32_t)>&& func) const;
+    void SetRegister(uint32_t registerIndex, uint32_t value);
     void TriggerException(ExceptionCause cause);
 
 private:
@@ -129,26 +128,26 @@ private:
     void ExecuteSWC3(Instruction inst);
 
 private:
-    static constexpr const Utils::UInt32 OPCODE_PATTERN = 0xFC00003F;
+    static constexpr const uint32_t OPCODE_PATTERN = 0xFC00003F;
 
     std::unordered_map<Opcode, void (R3000A::*)(Instruction)> m_opTable;
-    std::array<Utils::UInt32, 32> m_registers;  /**< CPU registers */
-    std::array<Utils::UInt32, 32> m_outputRegisters;  /**< CPU registers */
-    Utils::UInt32 m_pc;                         /**< Program counter. Points to the next instruction */
-    Utils::UInt32 m_nextPC;                     /**< Next value for the PC. Used to simulate the branch delay slot */
-    Utils::UInt32 m_currentPC;                  /**< Address of the instruction currently being executed.
+    std::array<uint32_t, 32> m_registers;  /**< CPU registers */
+    std::array<uint32_t, 32> m_outputRegisters;  /**< CPU registers */
+    uint32_t m_pc;                         /**< Program counter. Points to the next instruction */
+    uint32_t m_nextPC;                     /**< Next value for the PC. Used to simulate the branch delay slot */
+    uint32_t m_currentPC;                  /**< Address of the instruction currently being executed.
                                                      Used for setting the EPC in exceptions. */
-    Utils::UInt32 m_hi;                         /**< Multiplication 64 bit high result or division remainder */
-    Utils::UInt32 m_lo;                         /**< Multiplication 64 bit low result or division quotient */
+    uint32_t m_hi;                         /**< Multiplication 64 bit high result or division remainder */
+    uint32_t m_lo;                         /**< Multiplication 64 bit low result or division quotient */
 
     Interconnect m_interconnect;
     Instruction m_nextInst; /**< Next instruction to execute. Used to simulate the branch delay slot */
-    std::pair<Utils::UInt32, Utils::UInt32> m_pendingLoad; /**< Load initiated by the current instruction */
+    std::pair<uint32_t, uint32_t> m_pendingLoad; /**< Load initiated by the current instruction */
 
-    Utils::UInt32 m_sr;     /**< Cop0 register 12: Status register
+    uint32_t m_sr;     /**< Cop0 register 12: Status register
                                  It is used to mask exceptions and control the cache behavior */
-    Utils::UInt32 m_cause;  /**< Cop0 register 13: Cause register */
-    Utils::UInt32 m_epc;    /**< Cop0 register 14: EPC register */
+    uint32_t m_cause;  /**< Cop0 register 13: Cause register */
+    uint32_t m_epc;    /**< Cop0 register 14: EPC register */
 
     bool m_isBranching;     /**< Set by the current instruction if a branch occured and the next instruction
                                  will be in the delay slot */

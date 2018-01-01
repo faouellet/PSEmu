@@ -11,8 +11,8 @@ bool BIOS::Init(const std::string& absoluteFilePath)
 
     if(biosStream)
     {
-        m_data.assign(std::istreambuf_iterator<Utils::Byte>{biosStream},
-                      std::istreambuf_iterator<Utils::Byte>{});
+        m_data.assign(std::istreambuf_iterator<char>{biosStream},
+                      std::istreambuf_iterator<char>{});
 
         return true;
     }
@@ -20,14 +20,14 @@ bool BIOS::Init(const std::string& absoluteFilePath)
     return false;
 }
 
-Utils::UInt8 BIOS::LoadByte(Utils::UInt32 offset) const
+uint8_t BIOS::LoadByte(uint32_t offset) const
 {
     return m_data[offset];
 }
 
-Utils::UInt32 BIOS::LoadWord(Utils::UInt32 offset) const
+uint32_t BIOS::LoadWord(uint32_t offset) const
 {
-    Utils::UInt32 word;
+    uint32_t word;
 
     // Don't forget the PSX is a little endian machine!
     for(int iByte = 3; iByte > 0; --iByte)

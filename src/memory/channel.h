@@ -1,8 +1,7 @@
 #ifndef CHANNEL_H
 #define CHANNEL_H
 
-#include "../utils/types.h"
-
+#include <cstdint>
 #include <optional>
 
 namespace PSEmu
@@ -33,15 +32,15 @@ enum class Sync
 class Channel
 {
 public:
-    Utils::UInt32 GetControl() const;
-    void SetControl(Utils::UInt32 value);
+    uint32_t GetControl() const;
+    void SetControl(uint32_t value);
 
-    Utils::UInt32 GetBase() const;
-    Utils::UInt32& GetBase();
-    void SetBase(Utils::UInt32 value);
+    uint32_t GetBase() const;
+    uint32_t& GetBase();
+    void SetBase(uint32_t value);
 
-    Utils::UInt32 GetBlockControl() const;
-    void SetBlockControl(Utils::UInt32 value);
+    uint32_t GetBlockControl() const;
+    void SetBlockControl(uint32_t value);
 
     bool IsActive() const;
     bool SetDone();
@@ -50,7 +49,7 @@ public:
     Step GetStep() const;
     Sync GetSync() const;
 
-    std::optional<Utils::UInt32> GetTransferSize() const;
+    std::optional<uint32_t> GetTransferSize() const;
 
 private:
     bool m_enable;
@@ -59,12 +58,12 @@ private:
     Sync m_sync;
     bool m_trigger; /**< Used to start the DMA transfer when 'm_sync' is 'MANUAL' */
     bool m_chop; /**< If true the DMA *chops* the transfer and lets the CPU runs in the gaps */
-    Utils::UInt8 m_chopDMASize; /**< Chopping DMA window size (log2 number of words) */
-    Utils::UInt8 m_chopCPUSize; /**< Chopping CPU window size (log2 number of words) */
-    Utils::UInt8 m_unknown; /**< Unknown 2 RW bits in configuration register */
-    Utils::UInt32 m_base;   /**< DMA start address */
-    Utils::UInt16 m_blockSize;  /**< Size of a block in words */
-    Utils::UInt16 m_blockCount; /**< Block count. Only used when 'm_sync' is 'REQUEST' */
+    uint8_t m_chopDMASize; /**< Chopping DMA window size (log2 number of words) */
+    uint8_t m_chopCPUSize; /**< Chopping CPU window size (log2 number of words) */
+    uint8_t m_unknown; /**< Unknown 2 RW bits in configuration register */
+    uint32_t m_base;   /**< DMA start address */
+    uint16_t m_blockSize;  /**< Size of a block in words */
+    uint16_t m_blockCount; /**< Block count. Only used when 'm_sync' is 'REQUEST' */
 };
 
 }   // end namespace PSEmu

@@ -4,28 +4,28 @@
 
 using namespace PSEmu;
 
-Utils::UInt32 GPU::GetStatus() const
+uint32_t GPU::GetStatus() const
 {
-    Utils::UInt32 status = 0;
+    uint32_t status = 0;
 
-    status |= static_cast<Utils::UInt32>(m_pageBaseX) << 0;
-    status |= static_cast<Utils::UInt32>(m_pageBaseY) << 4;
-    status |= static_cast<Utils::UInt32>(m_semiTransparency) << 5;
-    status |= static_cast<Utils::UInt32>(m_textureDepth) << 7;
-    status |= static_cast<Utils::UInt32>(m_dithering) << 9;
-    status |= static_cast<Utils::UInt32>(m_allowToDisplay) << 10;
-    status |= static_cast<Utils::UInt32>(m_forceSetMaskBit) << 11;
-    status |= static_cast<Utils::UInt32>(m_preserveMaskedPixels) << 12;
-    status |= static_cast<Utils::UInt32>(m_field) << 13;
+    status |= static_cast<uint32_t>(m_pageBaseX) << 0;
+    status |= static_cast<uint32_t>(m_pageBaseY) << 4;
+    status |= static_cast<uint32_t>(m_semiTransparency) << 5;
+    status |= static_cast<uint32_t>(m_textureDepth) << 7;
+    status |= static_cast<uint32_t>(m_dithering) << 9;
+    status |= static_cast<uint32_t>(m_allowToDisplay) << 10;
+    status |= static_cast<uint32_t>(m_forceSetMaskBit) << 11;
+    status |= static_cast<uint32_t>(m_preserveMaskedPixels) << 12;
+    status |= static_cast<uint32_t>(m_field) << 13;
     // Bit 14: not supported
-    status |= static_cast<Utils::UInt32>(m_disableTexture) << 15;
+    status |= static_cast<uint32_t>(m_disableTexture) << 15;
     status |= m_hRes.ToStatus();
-    status |= static_cast<Utils::UInt32>(m_vRes) << 19;
-    status |= static_cast<Utils::UInt32>(m_vMode) << 20;
-    status |= static_cast<Utils::UInt32>(m_displayDepth) << 21;
-    status |= static_cast<Utils::UInt32>(m_interlaced) << 22;
-    status |= static_cast<Utils::UInt32>(m_displayDisabled) << 23;
-    status |= static_cast<Utils::UInt32>(m_interrupt) << 24;
+    status |= static_cast<uint32_t>(m_vRes) << 19;
+    status |= static_cast<uint32_t>(m_vMode) << 20;
+    status |= static_cast<uint32_t>(m_displayDepth) << 21;
+    status |= static_cast<uint32_t>(m_interlaced) << 22;
+    status |= static_cast<uint32_t>(m_displayDisabled) << 23;
+    status |= static_cast<uint32_t>(m_interrupt) << 24;
 
     // For now, we pretend that the GPU is always ready:
     // Ready to receive command
@@ -35,7 +35,7 @@ Utils::UInt32 GPU::GetStatus() const
     // Ready to receive DMA block
     status |= 1 << 28;
 
-    status |= static_cast<Utils::UInt32>(m_dmaDirection) << 29;
+    status |= static_cast<uint32_t>(m_dmaDirection) << 29;
 
     // Bit 31 should change depending on the currently drawn line
     // (wether it's even, odd or in the vblack apparently).
@@ -59,9 +59,9 @@ Utils::UInt32 GPU::GetStatus() const
     return status;
 }
 
-void GPU::SetGP0(Utils::UInt32 value)
+void GPU::SetGP0(uint32_t value)
 {
-    const Utils::UInt32 opcode = ((value >> 24) & 0xFF);
+    const uint32_t opcode = ((value >> 24) & 0xFF);
 
     switch (opcode)
     {
@@ -75,9 +75,9 @@ void GPU::SetGP0(Utils::UInt32 value)
     }
 }
 
-void GPU::SetGP1(Utils::UInt32 value)
+void GPU::SetGP1(uint32_t value)
 {
-    const Utils::UInt32 opcode = ((value >> 24) & 0xFF);
+    const uint32_t opcode = ((value >> 24) & 0xFF);
 
     switch (opcode)
     {
@@ -88,7 +88,7 @@ void GPU::SetGP1(Utils::UInt32 value)
     }
 }
 
-void GPU::SetGP0DrawMode(Utils::UInt32 value)
+void GPU::SetGP0DrawMode(uint32_t value)
 {
     m_pageBaseX = (value & 0xF);
     m_pageBaseY = ((value >> 4) & 1);
@@ -152,10 +152,10 @@ void GPU::Reset()
     m_displayDepth = DisplayDepth::D15BITS;
 }
 
-void GPU::SetGP1DisplayMode(Utils::UInt32 value)
+void GPU::SetGP1DisplayMode(uint32_t value)
 {
-    const Utils::UInt8 hr1 = value & 3;
-    const Utils::UInt8 hr2 = (value >> 6) & 1;
+    const uint8_t hr1 = value & 3;
+    const uint8_t hr2 = (value >> 6) & 1;
 
     m_hRes = HorizontalRes{hr1, hr2};
 
@@ -168,7 +168,7 @@ void GPU::SetGP1DisplayMode(Utils::UInt32 value)
     assert(value & 0x80 == 0 && "Unsupported display mode");
 }
 
-void GPU::SetGP1DMADirection(Utils::UInt32 value)
+void GPU::SetGP1DMADirection(uint32_t value)
 {
     switch (value & 3)
     {
@@ -189,30 +189,30 @@ void GPU::SetGP1DMADirection(Utils::UInt32 value)
     }
 }
 
-void GPU::SetGP0DrawingAreaTopLeft(Utils::UInt32 value)
+void GPU::SetGP0DrawingAreaTopLeft(uint32_t value)
 {
     m_drawingAreaTop = (value >> 10) & 0x3FF;
     m_drawingAreaLeft = value & 0x3FF;
 }
 
-void GPU::SetGP0DrawingAreaBottomRight(Utils::UInt32 value)
+void GPU::SetGP0DrawingAreaBottomRight(uint32_t value)
 {
     m_drawingAreaBottom = (value >> 10) & 0x3FF;
     m_drawingAreaRight = value & 0x3FF;
 }
 
-void GPU::SetGP0DrawingOffset(Utils::UInt32 value)
+void GPU::SetGP0DrawingOffset(uint32_t value)
 {
-    const Utils::UInt16 x = value & 0x7FF;
-    const Utils::UInt16 y = (value >> 11) & 0x7FF;
+    const uint16_t x = value & 0x7FF;
+    const uint16_t y = (value >> 11) & 0x7FF;
 
     // Values are 11 bits two's complement signed values,
     // we need to shift the value to 16 bits to force sign extension
-    m_drawingOffsetX = static_cast<Utils::Int16>(x << 5) >> 5;
-    m_drawingOffsetY = static_cast<Utils::Int16>(y << 5) >> 5;
+    m_drawingOffsetX = static_cast<int16_t>(x << 5) >> 5;
+    m_drawingOffsetY = static_cast<int16_t>(y << 5) >> 5;
 }
 
-void GPU::SetGP0TextureWindow(Utils::UInt32 value)
+void GPU::SetGP0TextureWindow(uint32_t value)
 {
     m_textureWindowMaskX = value & 0x1F;
     m_textureWindowMaskY = (value >> 5) & 0x1F;
@@ -220,25 +220,25 @@ void GPU::SetGP0TextureWindow(Utils::UInt32 value)
     m_textureWindowOffsetY = (value >> 15) & 0x1F;
 }
 
-void GPU::SetGP0MaskBitSetting(Utils::UInt32 value)
+void GPU::SetGP0MaskBitSetting(uint32_t value)
 {
     m_forceSetMaskBit = (value & 1) != 0;
     m_preserveMaskedPixels = (value & 2) != 0;
 }
 
-void GPU::GP1DisplayVRAMStart(Utils::UInt32 value)
+void GPU::GP1DisplayVRAMStart(uint32_t value)
 {
     m_displayVRAMStartX = value & 0x3FE;
     m_displayVRAMStartY = (value >> 10) & 0x1FF;
 }
 
-void GPU::GP1DisplayHorizontalRange(Utils::UInt32 value)
+void GPU::GP1DisplayHorizontalRange(uint32_t value)
 {
     m_displayHorizStart = value & 0xFFF;
     m_displayHorizEnd = (value >> 12) & 0xFFF;
 }
 
-void GPU::GP1DisplayVerticalRange(Utils::UInt32 value)
+void GPU::GP1DisplayVerticalRange(uint32_t value)
 {
     m_displayLineStart = value & 0x3FF;
     m_displayLineEnd = (value >> 10) & 0x3FF;

@@ -48,7 +48,7 @@ void R3000A::Step()
     auto foundIt = std::find_if(m_opTable.cbegin(), m_opTable.cend(), 
                                 [&instToExec, this](const auto& opFtor)
                                 { 
-                                    const Utils::UInt32 instOpcode = instToExec & OPCODE_PATTERN;
+                                    const uint32_t instOpcode = instToExec & OPCODE_PATTERN;
                                     return (opFtor.first & instOpcode) == 0; 
                                 });
 
@@ -154,7 +154,7 @@ void R3000A::InitOpTable()
     m_opTable[SWC3]     = &R3000A::ExecuteSWC3;
 }
 
-Utils::UInt8 R3000A::LoadByte(Utils::UInt32 address)
+uint8_t R3000A::LoadByte(uint32_t address)
 {
     if (m_sr & 0x10000 != 0)
     {
@@ -164,7 +164,7 @@ Utils::UInt8 R3000A::LoadByte(Utils::UInt32 address)
     return m_interconnect.LoadByte(address);
 }
 
-Utils::UInt16 R3000A::LoadHalfWord(Utils::UInt32 address)
+uint16_t R3000A::LoadHalfWord(uint32_t address)
 {
     if (m_sr & 0x10000 != 0)
     {
@@ -181,7 +181,7 @@ Utils::UInt16 R3000A::LoadHalfWord(Utils::UInt32 address)
     return m_interconnect.LoadHalfWord(address);
 }
 
-Utils::UInt32 R3000A::LoadWord(Utils::UInt32 address)
+uint32_t R3000A::LoadWord(uint32_t address)
 {
     if (m_sr & 0x10000 != 0)
     {
@@ -198,7 +198,7 @@ Utils::UInt32 R3000A::LoadWord(Utils::UInt32 address)
     return m_interconnect.LoadWord(address);
 }
 
-void R3000A::StoreByte(Utils::UInt32 address, Utils::UInt8 value)
+void R3000A::StoreByte(uint32_t address, uint8_t value)
 {
     if (m_sr & 0x10000 != 0)
     {
@@ -208,7 +208,7 @@ void R3000A::StoreByte(Utils::UInt32 address, Utils::UInt8 value)
     m_interconnect.StoreByte(address, value);
 }
 
-void R3000A::StoreHalfWord(Utils::UInt32 address, Utils::UInt16 value)
+void R3000A::StoreHalfWord(uint32_t address, uint16_t value)
 {
     if (m_sr & 0x10000 != 0)
     {
@@ -225,7 +225,7 @@ void R3000A::StoreHalfWord(Utils::UInt32 address, Utils::UInt16 value)
     m_interconnect.StoreHalfWord(address, value);
 }
 
-void R3000A::StoreWord(Utils::UInt32 address, Utils::UInt32 value)
+void R3000A::StoreWord(uint32_t address, uint32_t value)
 {
     if (m_sr & 0x10000 != 0)
     {
@@ -242,19 +242,19 @@ void R3000A::StoreWord(Utils::UInt32 address, Utils::UInt32 value)
     m_interconnect.StoreWord(address, value);
 }
 
-void R3000A::Branch(Utils::UInt32 offset)
+void R3000A::Branch(uint32_t offset)
 {
     m_isBranching = true;
-    const Utils::UInt32 alignedOffset = offset << 2;
+    const uint32_t alignedOffset = offset << 2;
     m_pc += alignedOffset;
 }
 
-bool R3000A::WouldOverflow(Utils::Int32 lhs, Utils::Int32 rhs, std::function<Utils::Int32(Utils::Int32,Utils::Int32)>&& func) const
+bool R3000A::WouldOverflow(int32_t lhs, int32_t rhs, std::function<int32_t(int32_t,int32_t)>&& func) const
 {
-    return lhs > func(rhs, std::numeric_limits<Utils::Int32>::max());
+    return lhs > func(rhs, std::numeric_limits<int32_t>::max());
 }
 
-void R3000A::SetRegister(Utils::UInt32 registerIndex, Utils::UInt32 value)
+void R3000A::SetRegister(uint32_t registerIndex, uint32_t value)
 {
     m_outputRegisters[registerIndex] = value;
 
@@ -265,7 +265,7 @@ void R3000A::SetRegister(Utils::UInt32 registerIndex, Utils::UInt32 value)
 void R3000A::TriggerException(ExceptionCause cause)
 {
     // Exception handler address depends on the BEV bit
-    const Utils::UInt32 handler = (m_sr & (1 << 22)) == 0 ? 0x80000080 : 0xBFC00180;
+    const uint32_t handler = (m_sr & (1 << 22)) == 0 ? 0x80000080 : 0xBFC00180;
 
     // Shift bits [5:0] of SR two places to the left.
     // Those bits are three pairs of Interrupt Enable/User Mode
@@ -276,7 +276,7 @@ void R3000A::TriggerException(ExceptionCause cause)
     // The original third entry is discarded (it's up
     // to the kernel to handle more than two recursive
     // exception levels).
-    const Utils::UInt32 mode = m_sr & 0x3F;
+    const uint32_t mode = m_sr & 0x3F;
     m_sr &= ~0x3f;
     m_sr |= (mode << 2) & 0x3F;
 
@@ -301,7 +301,7 @@ void R3000A::TriggerException(ExceptionCause cause)
 
 void R3000A::ExecuteLUI(Instruction inst)
 {
-    Utils::UInt32 res = inst.imm << 16;
+    uint32_t res = inst.imm << 16;
     res &= 0x0000FFFF;
     SetRegister(inst.rt, res);
 }
@@ -313,8 +313,8 @@ void R3000A::ExecuteORI(Instruction inst)
 
 void R3000A::ExecuteSW(Instruction inst)
 {
-    const Utils::UInt32 address = inst.rs + inst.imm_se();
-    const Utils::UInt32 value = inst.rs;
+    const uint32_t address = inst.rs + inst.imm_se();
+    const uint32_t value = inst.rs;
     StoreWord(address, value);
 }
 
@@ -341,7 +341,7 @@ void R3000A::ExecuteOR(Instruction inst)
 
 void R3000A::ExecuteMTC0(Instruction inst)
 {
-    Utils::UInt32 cop0Reg = inst.rd;
+    uint32_t cop0Reg = inst.rd;
     if (cop0Reg != 0xC)
     {
         // TODO: unimplemented register access
@@ -361,11 +361,11 @@ void R3000A::ExecuteBNE(Instruction inst)
 
 void R3000A::ExecuteADDI(Instruction inst)
 {
-    const Utils::Int32 lhs = m_registers[inst.rs];
-    const Utils::Int32 rhs = inst.imm_se();
+    const int32_t lhs = m_registers[inst.rs];
+    const int32_t rhs = inst.imm_se();
 
     // Check for overflow.
-    if (WouldOverflow(lhs, rhs, std::minus<Utils::Int32>()))
+    if (WouldOverflow(lhs, rhs, std::minus<int32_t>()))
     {
         TriggerException(ExceptionCause::OVERFLOW);
     }
@@ -375,8 +375,8 @@ void R3000A::ExecuteADDI(Instruction inst)
 
 void R3000A::ExecuteLW(Instruction inst)
 {
-    Utils::UInt32 address = inst.rs + inst.imm_se();
-    Utils::UInt32 value = LoadWord(address); 
+    uint32_t address = inst.rs + inst.imm_se();
+    uint32_t value = LoadWord(address); 
     SetRegister(inst.rt, value);
 
     m_pendingLoad = {{inst.rt}, value};
@@ -394,8 +394,8 @@ void R3000A::ExecuteADDU(Instruction inst)
 
 void R3000A::ExecuteSH(Instruction inst)
 {
-    const Utils::UInt32 address = inst.rs + inst.imm_se();
-    const Utils::UInt16 value = inst.rs;
+    const uint32_t address = inst.rs + inst.imm_se();
+    const uint16_t value = inst.rs;
     StoreHalfWord(address, value);
 }
 
@@ -416,8 +416,8 @@ void R3000A::ExecuteANDI(Instruction inst)
 
 void R3000A::ExecuteSB(Instruction inst)
 {
-    const Utils::UInt32 address = inst.rs + inst.imm_se();
-    const Utils::UInt8 value = inst.rs;
+    const uint32_t address = inst.rs + inst.imm_se();
+    const uint8_t value = inst.rs;
     StoreHalfWord(address, value);
 }
 
@@ -429,9 +429,9 @@ void R3000A::ExecuteJR(Instruction inst)
 
 void R3000A::ExecuteLB(Instruction inst)
 {
-    const Utils::UInt32 addr = inst.rs + inst.imm_se();
+    const uint32_t addr = inst.rs + inst.imm_se();
 
-    const Utils::Int8 value = LoadByte(addr);
+    const int8_t value = LoadByte(addr);
 
     m_pendingLoad = {{inst.rt}, value};
 }
@@ -446,7 +446,7 @@ void R3000A::ExecuteBEQ(Instruction inst)
 
 void R3000A::ExecuteMFC0(Instruction inst)
 {
-    Utils::UInt32 cop0Reg = inst.rd;
+    uint32_t cop0Reg = inst.rd;
     if (cop0Reg != 0xC
         || cop0Reg != 0xD
         || cop0Reg != 0xE)
@@ -467,11 +467,11 @@ void R3000A::ExecuteAND(Instruction inst)
 
 void R3000A::ExecuteADD(Instruction inst)
 {
-    const Utils::Int32 lhs = m_registers[inst.rs];
-    const Utils::Int32 rhs = m_registers[inst.rt];
+    const int32_t lhs = m_registers[inst.rs];
+    const int32_t rhs = m_registers[inst.rt];
 
     // Check for overflow.
-    if (WouldOverflow(lhs, rhs, std::minus<Utils::Int32>()))
+    if (WouldOverflow(lhs, rhs, std::minus<int32_t>()))
     {
         TriggerException(ExceptionCause::OVERFLOW);
     }   
@@ -481,7 +481,7 @@ void R3000A::ExecuteADD(Instruction inst)
 
 void R3000A::ExecuteBGTZ(Instruction inst)
 {
-    const Utils::Int32 value = m_registers[inst.rs];
+    const int32_t value = m_registers[inst.rs];
     if (value > 0)
     {
         Branch(inst.imm_se());
@@ -490,7 +490,7 @@ void R3000A::ExecuteBGTZ(Instruction inst)
 
 void R3000A::ExecuteBLEZ(Instruction inst)
 {
-    const Utils::Int32 value = m_registers[inst.rs];
+    const int32_t value = m_registers[inst.rs];
     if (value <= 0)
     {
         Branch(inst.imm_se());
@@ -499,9 +499,9 @@ void R3000A::ExecuteBLEZ(Instruction inst)
 
 void R3000A::ExecuteLBU(Instruction inst)
 {
-    const Utils::UInt32 addr = inst.rs + inst.imm;
+    const uint32_t addr = inst.rs + inst.imm;
 
-    const Utils::Int8 value = LoadByte(addr);
+    const int8_t value = LoadByte(addr);
 
     m_pendingLoad = {{inst.rt}, value};
 }
@@ -515,7 +515,7 @@ void R3000A::ExecuteJALR(Instruction inst)
 
 void R3000A::ExecuteBLTZ(Instruction inst)
 {
-    const Utils::Int32 value = m_registers[inst.rs];
+    const int32_t value = m_registers[inst.rs];
     if (value < 0)
     {
         Branch(inst.imm_se());
@@ -524,7 +524,7 @@ void R3000A::ExecuteBLTZ(Instruction inst)
 
 void R3000A::ExecuteBLTZAL(Instruction inst)
 {
-    const Utils::Int32 value = m_registers[inst.rs];
+    const int32_t value = m_registers[inst.rs];
 
     // Store return address in the RA register
     SetRegister(31, m_pc);
@@ -537,7 +537,7 @@ void R3000A::ExecuteBLTZAL(Instruction inst)
 
 void R3000A::ExecuteBGEZ(Instruction inst)
 {
-    const Utils::Int32 value = m_registers[inst.rs];
+    const int32_t value = m_registers[inst.rs];
     if (value > 0)
     {
         Branch(inst.imm_se());
@@ -546,7 +546,7 @@ void R3000A::ExecuteBGEZ(Instruction inst)
 
 void R3000A::ExecuteBGEZAL(Instruction inst)
 {
-    const Utils::Int32 value = m_registers[inst.rs];
+    const int32_t value = m_registers[inst.rs];
 
     // Store return address in the RA register
     SetRegister(31, m_pc);
@@ -559,7 +559,7 @@ void R3000A::ExecuteBGEZAL(Instruction inst)
 
 void R3000A::ExecuteSLTI(Instruction inst)
 {
-    SetRegister(inst.rt, static_cast<Utils::Int32>(m_registers[inst.rs]) < inst.imm_se());
+    SetRegister(inst.rt, static_cast<int32_t>(m_registers[inst.rs]) < inst.imm_se());
 }
 
 void R3000A::ExecuteSUBU(Instruction inst)
@@ -569,14 +569,14 @@ void R3000A::ExecuteSUBU(Instruction inst)
 
 void R3000A::ExecuteSRA(Instruction inst)
 {
-    const Utils::UInt32 value = (static_cast<Utils::Int32>(inst.rt) >> inst.shamt);
+    const uint32_t value = (static_cast<int32_t>(inst.rt) >> inst.shamt);
     SetRegister(inst.rd, value);
 }
 
 void R3000A::ExecuteDIV(Instruction inst)
 {
-    const Utils::Int32 numerator = m_registers[inst.rs];
-    const Utils::Int32 denominator = m_registers[inst.rt];
+    const int32_t numerator = m_registers[inst.rs];
+    const int32_t denominator = m_registers[inst.rt];
 
     if (denominator == 0)
     {
@@ -584,7 +584,7 @@ void R3000A::ExecuteDIV(Instruction inst)
         m_hi = numerator;
         m_lo = numerator >= 0 ? 0xFFFFFFFF : 1;
     }
-    else if((static_cast<Utils::UInt32>(numerator) == 0x80000000) && (denominator == -1))
+    else if((static_cast<uint32_t>(numerator) == 0x80000000) && (denominator == -1))
     {
         // Result is not reprensentable in 32 bits
         m_hi = 0;
@@ -614,8 +614,8 @@ void R3000A::ExecuteSLTIU(Instruction inst)
 
 void R3000A::ExecuteDIVU(Instruction inst)
 {
-    const Utils::UInt32 numerator = m_registers[inst.rs];
-    const Utils::UInt32 denominator = m_registers[inst.rt];
+    const uint32_t numerator = m_registers[inst.rs];
+    const uint32_t denominator = m_registers[inst.rt];
 
     if (denominator == 0)
     {
@@ -637,7 +637,7 @@ void R3000A::ExecuteMFHI(Instruction inst)
 
 void R3000A::ExecuteSLT(Instruction inst)
 {
-    SetRegister(inst.rd, static_cast<Utils::Int32>(m_registers[inst.rs]) < static_cast<Utils::Int32>(m_registers[inst.rt]));
+    SetRegister(inst.rd, static_cast<int32_t>(m_registers[inst.rs]) < static_cast<int32_t>(m_registers[inst.rt]));
 }
 
 void R3000A::ExecuteSYSCALL(Instruction inst)
@@ -660,19 +660,19 @@ void R3000A::ExecuteRFE(Instruction inst)
     // Restore the pre-exception mode by shifting the
     // Interrupt Enable/User Mode stack back to its 
     // original position.
-    const Utils::UInt32 mode = m_sr & 0x3F;
+    const uint32_t mode = m_sr & 0x3F;
     m_sr &= !0x3F;
     m_sr |= mode >> 2;
 }
 
 void R3000A::ExecuteLHU(Instruction inst)
 {
-    const Utils::UInt32 addr = inst.rs + inst.imm_se();
+    const uint32_t addr = inst.rs + inst.imm_se();
 
     // TODO: Subtle bug here and in all memory related operations
     //       The problem is that a load/store shouldn't be completed
     //       if an exception is triggered
-    const Utils::UInt32 value = LoadHalfWord(addr);
+    const uint32_t value = LoadHalfWord(addr);
 
     m_pendingLoad = {{inst.rt}, value};
 }
@@ -685,9 +685,9 @@ void R3000A::ExecuteSLLV(Instruction inst)
 
 void R3000A::ExecuteLH(Instruction inst)
 {
-    const Utils::UInt32 addr = inst.rs + inst.imm_se();
+    const uint32_t addr = inst.rs + inst.imm_se();
 
-    const Utils::Int16 value = LoadHalfWord(addr);
+    const int16_t value = LoadHalfWord(addr);
 
     m_pendingLoad = {{inst.rt}, value};
 }
@@ -700,7 +700,7 @@ void R3000A::ExecuteNOR(Instruction inst)
 void R3000A::ExecuteSRAV(Instruction inst)
 {
     // Shift amount is truncated to 5 bits
-    SetRegister(inst.rd, static_cast<Utils::Int32>(m_registers[inst.rt]) >> (m_registers[inst.rs] & 0x1F));
+    SetRegister(inst.rd, static_cast<int32_t>(m_registers[inst.rt]) >> (m_registers[inst.rs] & 0x1F));
 }
 
 void R3000A::ExecuteSRLV(Instruction inst)
@@ -711,7 +711,7 @@ void R3000A::ExecuteSRLV(Instruction inst)
 
 void R3000A::ExecuteMULTU(Instruction inst)
 {
-    const Utils::UInt64 value = m_registers[inst.rs] * m_registers[inst.rt];
+    const uint64_t value = m_registers[inst.rs] * m_registers[inst.rt];
 
     m_hi = value >> 32;
     m_lo = value;
@@ -729,10 +729,10 @@ void R3000A::ExecuteBREAK(Instruction inst)
 
 void R3000A::ExecuteMULT(Instruction inst)
 {
-    const Utils::Int64 lhs = m_registers[inst.rs];
-    const Utils::Int64 rhs = m_registers[inst.rt];
+    const int64_t lhs = m_registers[inst.rs];
+    const int64_t rhs = m_registers[inst.rt];
 
-    const Utils::UInt64 result = lhs * rhs;
+    const uint64_t result = lhs * rhs;
 
     m_hi = result >> 32;
     m_lo = result;
@@ -740,11 +740,11 @@ void R3000A::ExecuteMULT(Instruction inst)
 
 void R3000A::ExecuteSUB(Instruction inst)
 {
-    const Utils::Int32 lhs = m_registers[inst.rs];
-    const Utils::Int32 rhs = m_registers[inst.rt];
+    const int32_t lhs = m_registers[inst.rs];
+    const int32_t rhs = m_registers[inst.rt];
 
     // Check for overflow.
-    if (WouldOverflow(lhs, rhs, std::plus<Utils::Int32>()))
+    if (WouldOverflow(lhs, rhs, std::plus<int32_t>()))
     {
         TriggerException(ExceptionCause::OVERFLOW);
     }
@@ -774,21 +774,21 @@ void R3000A::ExecuteCOP3(Instruction inst)
 
 void R3000A::ExecuteLWL(Instruction inst)
 {
-    const Utils::UInt32 address = m_registers[inst.rs] + inst.imm_se();
+    const uint32_t address = m_registers[inst.rs] + inst.imm_se();
 
     // This instruction bypasses the load delay restriction:
     // this instruction will merge the new contents with the
     // value currently being loaded if need be.
-    const Utils::UInt32 curValue = m_outputRegisters[inst.rt];
+    const uint32_t curValue = m_outputRegisters[inst.rt];
 
     // Next, we load the *aligned* word containing the first
     // addressed byte
-    const Utils::UInt32 alignedAddr = address & !3;
-    const Utils::UInt32 alignedWord = LoadWord(alignedAddr);
+    const uint32_t alignedAddr = address & !3;
+    const uint32_t alignedWord = LoadWord(alignedAddr);
 
     // Depending on the address alignment, we fetch the 1,2,3 or 4
     // *most* significant bytes and put them in the target register
-    Utils::UInt32 newValue;
+    uint32_t newValue;
     switch (address & 3)
     {
         case 0:
@@ -812,21 +812,21 @@ void R3000A::ExecuteLWL(Instruction inst)
 
 void R3000A::ExecuteLWR(Instruction inst)
 {
-    const Utils::UInt32 address = m_registers[inst.rs] + inst.imm_se();
+    const uint32_t address = m_registers[inst.rs] + inst.imm_se();
 
     // This instruction bypasses the load delay restriction:
     // this instruction will merge the new contents with the
     // value currently being loaded if need be.
-    const Utils::UInt32 curValue = m_outputRegisters[inst.rt];
+    const uint32_t curValue = m_outputRegisters[inst.rt];
 
     // Next, we load the *aligned* word containing the first
     // addressed byte
-    const Utils::UInt32 alignedAddr = address & !3;
-    const Utils::UInt32 alignedWord = LoadWord(alignedAddr);
+    const uint32_t alignedAddr = address & !3;
+    const uint32_t alignedWord = LoadWord(alignedAddr);
 
     // Depending on the address alignment, we fetch the 1,2,3 or 4
     // *least* significant bytes and put them in the target register
-    Utils::UInt32 newValue;
+    uint32_t newValue;
     switch (address & 3)
     {
         case 0:
@@ -850,15 +850,15 @@ void R3000A::ExecuteLWR(Instruction inst)
 
 void R3000A::ExecuteSWL(Instruction inst)
 {
-    const Utils::UInt32 address = m_registers[inst.rs] + inst.imm_se();
-    const Utils::UInt32 value = m_registers[inst.rt];
+    const uint32_t address = m_registers[inst.rs] + inst.imm_se();
+    const uint32_t value = m_registers[inst.rt];
 
-    const Utils::UInt32 alignedAddr = address & !3;
+    const uint32_t alignedAddr = address & !3;
 
     // Load the current value for the aligned word at the target address
-    const Utils::UInt32 curValue = LoadWord(alignedAddr);
+    const uint32_t curValue = LoadWord(alignedAddr);
 
-    Utils::UInt32 newValue;
+    uint32_t newValue;
     switch (address & 3)
     {
         case 0:
@@ -882,15 +882,15 @@ void R3000A::ExecuteSWL(Instruction inst)
 
 void R3000A::ExecuteSWR(Instruction inst)
 {
-    const Utils::UInt32 address = m_registers[inst.rs] + inst.imm_se();
-    const Utils::UInt32 value = m_registers[inst.rt];
+    const uint32_t address = m_registers[inst.rs] + inst.imm_se();
+    const uint32_t value = m_registers[inst.rt];
 
-    const Utils::UInt32 alignedAddr = address & !3;
+    const uint32_t alignedAddr = address & !3;
 
     // Load the current value for the aligned word at the target address
-    const Utils::UInt32 curValue = LoadWord(alignedAddr);
+    const uint32_t curValue = LoadWord(alignedAddr);
 
-    Utils::UInt32 newValue;
+    uint32_t newValue;
     switch (address & 3)
     {
         case 0:

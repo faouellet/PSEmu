@@ -2,9 +2,9 @@
 
 using namespace Utils;
 
-Range::Range(UInt32 start, UInt32 length) : m_start{ start }, m_length{ length } { }
+Range::Range(uint32_t start, uint32_t length) : m_start{ start }, m_length{ length } { }
 
-std::optional<UInt32> Range::Contains(UInt32 address) const
+std::optional<uint32_t> Range::Contains(uint32_t address) const
 {
     if (m_start <= address && address < m_start + m_length)
     {

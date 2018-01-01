@@ -1,8 +1,9 @@
 #ifndef GPU_H
 #define GPU_H
 
-#include "../utils/types.h"
 #include "commandbuffer.h"
+
+#include <cstdint>
 
 namespace PSEmu
 {
@@ -29,18 +30,18 @@ public:
     // TODO: Review this
     HorizontalRes() = default;
 
-    HorizontalRes(Utils::UInt8 hr1, Utils::UInt8 hr2)
+    HorizontalRes(uint8_t hr1, uint8_t hr2)
     {
         m_resolution = (hr2 & 1) | ((hr1 & 3) << 1);
     }
 
-    Utils::UInt32 ToStatus() const
+    uint32_t ToStatus() const
     {
-        return (static_cast<Utils::UInt32>(m_resolution) << 16);
+        return (static_cast<uint32_t>(m_resolution) << 16);
     }
 
 private:
-    Utils::UInt8 m_resolution;
+    uint8_t m_resolution;
 };
 
 // Video output vertical resolution
@@ -74,34 +75,34 @@ enum class DMADirection
 class GPU
 {
 public:
-    Utils::UInt32 GetStatus() const;
-    void SetGP0(Utils::UInt32 value);
-    void SetGP1(Utils::UInt32 value);
+    uint32_t GetStatus() const;
+    void SetGP0(uint32_t value);
+    void SetGP1(uint32_t value);
 
 private:
-    void SetGP0DrawMode(Utils::UInt32 value);
+    void SetGP0DrawMode(uint32_t value);
     void Reset();
-    Utils::UInt32 Read() const { return 0; }
-    void SetGP1DisplayMode(Utils::UInt32 value);
-    void SetGP1DMADirection(Utils::UInt32 value);
-    void SetGP0DrawingAreaTopLeft(Utils::UInt32 value);
-    void SetGP0DrawingAreaBottomRight(Utils::UInt32 value);
-    void SetGP0DrawingOffset(Utils::UInt32 value);
-    void SetGP0TextureWindow(Utils::UInt32 value);
-    void SetGP0MaskBitSetting(Utils::UInt32 value);
-    void GP1DisplayVRAMStart(Utils::UInt32 value);
-    void GP1DisplayHorizontalRange(Utils::UInt32 value);
-    void GP1DisplayVerticalRange(Utils::UInt32 value);
+    uint32_t Read() const { return 0; }
+    void SetGP1DisplayMode(uint32_t value);
+    void SetGP1DMADirection(uint32_t value);
+    void SetGP0DrawingAreaTopLeft(uint32_t value);
+    void SetGP0DrawingAreaBottomRight(uint32_t value);
+    void SetGP0DrawingOffset(uint32_t value);
+    void SetGP0TextureWindow(uint32_t value);
+    void SetGP0MaskBitSetting(uint32_t value);
+    void GP1DisplayVRAMStart(uint32_t value);
+    void GP1DisplayHorizontalRange(uint32_t value);
+    void GP1DisplayVerticalRange(uint32_t value);
 
 private:
     // Texture page base X coordinate (4 bits, 64 byte increment)
-    Utils::UInt8 m_pageBaseX;
+    uint8_t m_pageBaseX;
 
     // Texture page base Y coordinate (1 bits, 256 line increment)
-    Utils::UInt8 m_pageBaseY;
+    uint8_t m_pageBaseY;
 
     // Semi-transparency
-    Utils::UInt8 m_semiTransparency;
+    uint8_t m_semiTransparency;
 
     // Texture page color depth
     TextureDepth m_textureDepth;
@@ -157,58 +158,58 @@ private:
     bool m_rectangleTextureFlipY;
 
     // Texture window X mask (8 pixel steps)
-    Utils::UInt8 m_textureWindowMaskX;
+    uint8_t m_textureWindowMaskX;
 
     // Texture window Y mask (8 pixel steps)
-    Utils::UInt8 m_textureWindowMaskY;
+    uint8_t m_textureWindowMaskY;
 
     // Texture window X offset (8 pixel steps)
-    Utils::UInt8 m_textureWindowOffsetX;
+    uint8_t m_textureWindowOffsetX;
 
     // Texture window Y offset (8 pixel steps)
-    Utils::UInt8 m_textureWindowOffsetY;
+    uint8_t m_textureWindowOffsetY;
 
     // Left-most column of drawing area
-    Utils::UInt16 m_drawingAreaLeft;
+    uint16_t m_drawingAreaLeft;
 
     // Top-most line of drawing area
-    Utils::UInt16 m_drawingAreaTop;
+    uint16_t m_drawingAreaTop;
 
     // Right-most column of drawing area
-    Utils::UInt16 m_drawingAreaRight;
+    uint16_t m_drawingAreaRight;
 
     // Bottom-most line of drawing area
-    Utils::UInt16 m_drawingAreaBottom;
+    uint16_t m_drawingAreaBottom;
 
     // Horizontal drawing offset applied to all vertex
-    Utils::UInt16 m_drawingOffsetX;
+    uint16_t m_drawingOffsetX;
 
     // Vertical drawing offset applied to all vertex
-    Utils::UInt16 m_drawingOffsetY;
+    uint16_t m_drawingOffsetY;
 
     // First column of the display area in VRAM
-    Utils::UInt16 m_displayVRAMStartX;
+    uint16_t m_displayVRAMStartX;
 
     // Fisrt column of the display area in VRAM
-    Utils::UInt16 m_displayVRAMStartY;
+    uint16_t m_displayVRAMStartY;
 
     // Display output horizontal start relative to HSYNC
-    Utils::UInt16 m_displayHorizStart;
+    uint16_t m_displayHorizStart;
 
     // Display output horizontal end relative to HSYNC
-    Utils::UInt16 m_displayHorizEnd;
+    uint16_t m_displayHorizEnd;
 
     // Display output horizontal start relative to VSYNC
-    Utils::UInt16 m_displayLineStart;
+    uint16_t m_displayLineStart;
 
     // Display output horizontal end relative to VSYNC
-    Utils::UInt16 m_displayLineEnd;
+    uint16_t m_displayLineEnd;
 
     // Buffer containing the current GP0 command
     CommandBuffer m_GP0Command;
 
     // Remaining words in the current GP0 command
-    Utils::UInt32 m_GP0CommandRemaining;
+    uint32_t m_GP0CommandRemaining;
 
     
 };

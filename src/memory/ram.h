@@ -1,8 +1,7 @@
 #ifndef RAM_H
 #define RAM_H
 
-#include "../utils/types.h"
-
+#include <cstdint>
 #include <vector>
 
 namespace PSEmu
@@ -22,16 +21,16 @@ public:
     RAM& operator=(RAM&&) = default;
 
 public:
-    Utils::UInt8  LoadByte(Utils::UInt32 offset) const;
-    Utils::UInt16 LoadHalfWord(Utils::UInt32 offset) const;
-    Utils::UInt32 LoadWord(Utils::UInt32 offset) const;
+    uint8_t  LoadByte(uint32_t offset) const;
+    uint16_t LoadHalfWord(uint32_t offset) const;
+    uint32_t LoadWord(uint32_t offset) const;
 
-    void StoreByte(Utils::UInt32 offset, Utils::UInt8 value);
-    void StoreHalfWord(Utils::UInt32 offset, Utils::UInt16 value);
-    void StoreWord(Utils::UInt32 offset, Utils::UInt32 value);
+    void StoreByte(uint32_t offset, uint8_t value);
+    void StoreHalfWord(uint32_t offset, uint16_t value);
+    void StoreWord(uint32_t offset, uint32_t value);
 
 private:
-    std::vector<Utils::Byte> m_data;
+    std::vector<uint8_t> m_data;
 };
 
 }   // end namespace PSEmu

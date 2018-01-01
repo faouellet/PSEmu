@@ -7,51 +7,51 @@ using namespace PSEmu;
 // RAM contains garbage by default
 RAM::RAM() : m_data(0xCA, RAM_SIZE) { }
 
-Utils::UInt8 RAM::LoadByte(Utils::UInt32 offset) const
+uint8_t RAM::LoadByte(uint32_t offset) const
 {
     return m_data[offset];
 }
 
 // Fetch the little endian halfword at offset
-Utils::UInt16 RAM::LoadHalfWord(Utils::UInt32 offset) const
+uint16_t RAM::LoadHalfWord(uint32_t offset) const
 {
-    const Utils::UInt32 byte0 = m_data[offset + 0];
-    const Utils::UInt32 byte1 = m_data[offset + 1];
+    const uint32_t byte0 = m_data[offset + 0];
+    const uint32_t byte1 = m_data[offset + 1];
 
     return byte0 | (byte1 << 8);
 }
 
 // Fetch the little endian word at offset
-Utils::UInt32 RAM::LoadWord(Utils::UInt32 offset) const
+uint32_t RAM::LoadWord(uint32_t offset) const
 {
-    const Utils::UInt32 byte0 = m_data[offset + 0];
-    const Utils::UInt32 byte1 = m_data[offset + 1];
-    const Utils::UInt32 byte2 = m_data[offset + 2];
-    const Utils::UInt32 byte3 = m_data[offset + 3];
+    const uint32_t byte0 = m_data[offset + 0];
+    const uint32_t byte1 = m_data[offset + 1];
+    const uint32_t byte2 = m_data[offset + 2];
+    const uint32_t byte3 = m_data[offset + 3];
 
     return byte0 | (byte1 << 8) | (byte2 << 16) | (byte3 << 24);
 }
 
-void RAM::StoreByte(Utils::UInt32 offset, Utils::UInt8 value)
+void RAM::StoreByte(uint32_t offset, uint8_t value)
 {
     m_data[offset] = value;
 }
 
-void RAM::StoreHalfWord(Utils::UInt32 offset, Utils::UInt16 value)
+void RAM::StoreHalfWord(uint32_t offset, uint16_t value)
 {
-    const Utils::UInt8 byte0 = value;
-    const Utils::UInt8 byte1 = value << 8;
+    const uint8_t byte0 = value;
+    const uint8_t byte1 = value << 8;
 
     m_data[offset + 0] = byte0;
     m_data[offset + 1] = byte1;
 }
 
-void RAM::StoreWord(Utils::UInt32 offset, Utils::UInt32 value)
+void RAM::StoreWord(uint32_t offset, uint32_t value)
 {
-    const Utils::UInt8 byte0 = value;
-    const Utils::UInt8 byte1 = value << 8;
-    const Utils::UInt8 byte2 = value << 16;
-    const Utils::UInt8 byte3 = value << 24;
+    const uint8_t byte0 = value;
+    const uint8_t byte1 = value << 8;
+    const uint8_t byte2 = value << 16;
+    const uint8_t byte3 = value << 24;
 
     m_data[offset + 0] = byte0;
     m_data[offset + 1] = byte1;

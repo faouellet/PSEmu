@@ -4,22 +4,22 @@
 
 using namespace PSEmu;
 
-Utils::UInt32 Channel::GetControl() const
+uint32_t Channel::GetControl() const
 {
-    Utils::UInt32 control{};
+    uint32_t control{};
 
-    control |= static_cast<Utils::UInt32>(m_direction) << 0;
-    control |= static_cast<Utils::UInt32>(m_step) << 1;
-    control |= static_cast<Utils::UInt32>(m_chop) << 8;
-    control |= static_cast<Utils::UInt32>(m_sync) << 9;
-    control |= static_cast<Utils::UInt32>(m_chopDMASize) << 16;
-    control |= static_cast<Utils::UInt32>(m_chopCPUSize) << 20;
-    control |= static_cast<Utils::UInt32>(m_enable) << 24;
-    control |= static_cast<Utils::UInt32>(m_trigger) << 28;
-    control |= static_cast<Utils::UInt32>(m_unknown) << 29;
+    control |= static_cast<uint32_t>(m_direction) << 0;
+    control |= static_cast<uint32_t>(m_step) << 1;
+    control |= static_cast<uint32_t>(m_chop) << 8;
+    control |= static_cast<uint32_t>(m_sync) << 9;
+    control |= static_cast<uint32_t>(m_chopDMASize) << 16;
+    control |= static_cast<uint32_t>(m_chopCPUSize) << 20;
+    control |= static_cast<uint32_t>(m_enable) << 24;
+    control |= static_cast<uint32_t>(m_trigger) << 28;
+    control |= static_cast<uint32_t>(m_unknown) << 29;
 }
 
-void Channel::SetControl(Utils::UInt32 value)
+void Channel::SetControl(uint32_t value)
 {
     m_direction = ((value & 1) != 0) ? Direction::FROM_RAM : Direction::TO_RAM;
     m_step = (((value >> 1) & 1) != 0) ? Step::DECREMENT : Step::INCREMENT;
@@ -47,30 +47,30 @@ void Channel::SetControl(Utils::UInt32 value)
     m_unknown = (((value >> 29) & 3) != 0);
 }
 
-Utils::UInt32 Channel::GetBase() const
+uint32_t Channel::GetBase() const
 {
     return m_base;
 }
 
-Utils::UInt32& Channel::GetBase()
+uint32_t& Channel::GetBase()
 {
     return m_base;
 }
 
-void Channel::SetBase(Utils::UInt32 value)
+void Channel::SetBase(uint32_t value)
 {
     m_base = value & 0xFFFFFF;
 }
 
-Utils::UInt32 Channel::GetBlockControl() const
+uint32_t Channel::GetBlockControl() const
 {
-    const Utils::UInt32 bs = m_blockSize;
-    const Utils::UInt32 bc = m_blockCount;
+    const uint32_t bs = m_blockSize;
+    const uint32_t bc = m_blockCount;
 
     return (bc << 16) | bs;
 }
 
-void Channel::SetBlockControl(Utils::UInt32 value)
+void Channel::SetBlockControl(uint32_t value)
 {
     m_blockSize = value;
     m_blockCount = (value >> 16);
@@ -108,10 +108,10 @@ Sync Channel::GetSync() const
     return m_sync;
 }
 
-std::optional<Utils::UInt32> Channel::GetTransferSize() const
+std::optional<uint32_t> Channel::GetTransferSize() const
 {
-    const Utils::UInt32 bs = m_blockSize;
-    const Utils::UInt32 bc = m_blockCount;
+    const uint32_t bs = m_blockSize;
+    const uint32_t bc = m_blockCount;
 
     switch (m_sync)
     {

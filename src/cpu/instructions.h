@@ -1,8 +1,7 @@
 #ifndef INSTRUCTIONS_H
 #define INSTRUCTIONS_H
 
-#include "../utils/types.h"
-
+#include <cstdint>
 #include <cstring>
 
 namespace PSEmu
@@ -35,10 +34,10 @@ union Instruction
         unsigned int funct  : 6;    /**< Function field */   
     };
 
-    Utils::UInt32 imm_se() const 
+    uint32_t imm_se() const 
     { 
         // TODO: validate
-        Utils::Int16 res = imm;
+        int16_t res = imm;
         return res; 
     }
 
@@ -46,18 +45,18 @@ union Instruction
     {
         // Giving a specific value to a default constructed instruction
         // will help with the debugging
-        const Utils::UInt32 val{0xDEADBEEF};
+        const uint32_t val{0xDEADBEEF};
 
         std::memmove(this, &val, sizeof(*this));
     }
 
     // TODO: explicit??
-    Instruction(Utils::UInt32 val)
+    Instruction(uint32_t val)
     {
         std::memmove(this, &val, sizeof(*this));
     }
 
-    operator Utils::UInt32 () const
+    operator uint32_t () const
     {
         return *this;
     }

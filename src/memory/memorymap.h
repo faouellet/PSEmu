@@ -4,26 +4,27 @@
 #include "../utils/range.h"
 
 #include <array>
+#include <cstdint>
 
 namespace PSEmu
 {
 
 // Reserved addresses
-extern const Utils::UInt32 BIOS_ADDRESS;
-extern const Utils::UInt32 EXPANSION_MAPPING_ADDRESS;
-extern const Utils::UInt32 RAM_SIZE_ADDRESS;
-extern const Utils::UInt32 CACHE_CONTROL_ADDRESS;
-extern const Utils::UInt32 SPU_ADDRESS;
-extern const Utils::UInt32 EXPANSION_1_ADDRESS;
-extern const Utils::UInt32 EXPANSION_2_ADDRESS;
-extern const Utils::UInt32 IRQ_CONTROL_ADDRESS;
-extern const Utils::UInt32 TIMERS_ADDRESS;
-extern const Utils::UInt32 DMA_ADDRESS;
-extern const Utils::UInt32 GPU_ADDRESS;
+extern const uint32_t BIOS_ADDRESS;
+extern const uint32_t EXPANSION_MAPPING_ADDRESS;
+extern const uint32_t RAM_SIZE_ADDRESS;
+extern const uint32_t CACHE_CONTROL_ADDRESS;
+extern const uint32_t SPU_ADDRESS;
+extern const uint32_t EXPANSION_1_ADDRESS;
+extern const uint32_t EXPANSION_2_ADDRESS;
+extern const uint32_t IRQ_CONTROL_ADDRESS;
+extern const uint32_t TIMERS_ADDRESS;
+extern const uint32_t DMA_ADDRESS;
+extern const uint32_t GPU_ADDRESS;
 
 // Memory segments' sizes
-extern const Utils::UInt32 BIOS_SIZE;
-extern const Utils::UInt32 RAM_SIZE;
+extern const uint32_t BIOS_SIZE;
+extern const uint32_t RAM_SIZE;
 
 // Reserved ranges
 extern const Utils::Range BIOS_RANGE;
@@ -39,7 +40,7 @@ extern const Utils::Range DMA_RANGE;
 extern const Utils::Range GPU_RANGE;
 
 // Other
-extern const std::array<Utils::UInt32, 8> REGION_MASK;
+extern const std::array<uint32_t, 8> REGION_MASK;
 
 } // end namespace PSEmu
 

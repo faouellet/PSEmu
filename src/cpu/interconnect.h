@@ -15,13 +15,13 @@ public:
     explicit Interconnect(BIOS&& bios);
 
 public:
-    Utils::UInt8  LoadByte(Utils::UInt32 offset);
-    Utils::UInt16 LoadHalfWord(Utils::UInt32 offset);
-    Utils::UInt32 LoadWord(Utils::UInt32 offset);
+    uint8_t  LoadByte(uint32_t offset);
+    uint16_t LoadHalfWord(uint32_t offset);
+    uint32_t LoadWord(uint32_t offset);
 
-    void StoreByte(Utils::UInt32 address, Utils::UInt8 value);
-    void StoreHalfWord(Utils::UInt32 address, Utils::UInt16 value);
-    void StoreWord(Utils::UInt32 address, Utils::UInt32 value);
+    void StoreByte(uint32_t address, uint8_t value);
+    void StoreHalfWord(uint32_t address, uint16_t value);
+    void StoreWord(uint32_t address, uint32_t value);
 
 private:
     BIOS m_bios;
