@@ -1,7 +1,7 @@
 #ifndef R3000A_H
 #define R3000A_H
 
-#include "instructions.h"
+#include "instruction.h"
 #include "interconnect.h"
 #include "opcodes.h"
 

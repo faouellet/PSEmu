@@ -305,68 +305,67 @@ void R3000A::TriggerException(ExceptionCause cause)
 
 void R3000A::ExecuteLUI(Instruction inst)
 {
-    uint32_t res = inst.imm << 16;
-    res &= 0x0000FFFF;
-    SetRegister(inst.rt, res);
+    uint32_t res = inst.GetImm() << 16;
+    SetRegister(inst.GetRt(), res);
 }
 
 void R3000A::ExecuteORI(Instruction inst)
 {
-    SetRegister(inst.rt, inst.imm | inst.rs);
+    SetRegister(inst.GetRt(), inst.GetImm() | inst.GetRs());
 }
 
 void R3000A::ExecuteSW(Instruction inst)
 {
-    const uint32_t address = inst.rs + inst.imm_se();
-    const uint32_t value = inst.rs;
+    const uint32_t address = inst.GetRs() + inst.GetImmSe();
+    const uint32_t value = inst.GetRs();
     StoreWord(address, value);
 }
 
 void R3000A::ExecuteSLL(Instruction inst)
 {
-    SetRegister(inst.rd, m_registers[inst.rt] << inst.shamt);
+    SetRegister(inst.GetRd(), m_registers[inst.GetRt()] << inst.GetShamt());
 }
 
 void R3000A::ExecuteADDIU(Instruction inst)
 {
-    SetRegister(inst.rt, m_registers[inst.rs] + inst.imm_se());
+    SetRegister(inst.GetRt(), m_registers[inst.GetRs()] + inst.GetImmSe());
 }
 
 void R3000A::ExecuteJ(Instruction inst)
 {
     m_isBranching = true;
-    m_pc = (m_pc & 0xF0000000) | (inst.imm << 2);
+    m_pc = (m_pc & 0xF0000000) | (inst.GetImm() << 2);
 }
 
 void R3000A::ExecuteOR(Instruction inst)
 {
-    SetRegister(inst.rd, m_registers[inst.rs] | m_registers[inst.rt]);
+    SetRegister(inst.GetRd(), m_registers[inst.GetRs()] | m_registers[inst.GetRt()]);
 }
 
 void R3000A::ExecuteMTC0(Instruction inst)
 {
-    uint32_t cop0Reg = inst.rd;
+    uint32_t cop0Reg = inst.GetRd();
     if (cop0Reg != 0xC)
     {
         // TODO: unimplemented register access
         return;
     }
 
-    m_sr = m_registers[inst.rt];
+    m_sr = m_registers[inst.GetRt()];
 }
 
 void R3000A::ExecuteBNE(Instruction inst)
 {
-    if (m_registers[inst.rs] != m_registers[inst.rt])
+    if (m_registers[inst.GetRs()] != m_registers[inst.GetRt()])
     {
-        Branch(inst.imm_se());
+        Branch(inst.GetImmSe());
     }
 }
 
 void R3000A::ExecuteADDI(Instruction inst)
 {
-    const int32_t lhs = m_registers[inst.rs];
-    const int32_t rhs = inst.imm_se();
+    const int32_t lhs = m_registers[inst.GetRs()];
+    const int32_t rhs = inst.GetImmSe();
 
     // Check for overflow.
     if (WouldOverflow(lhs, rhs, std::minus<int32_t>()))
@@ -374,32 +373,32 @@ void R3000A::ExecuteADDI(Instruction inst)
         TriggerException(ExceptionCause::OVERFLOW);
     }
 
-    SetRegister(inst.rt, lhs + rhs);
+    SetRegister(inst.GetRt(), lhs + rhs);
 }
 
 void R3000A::ExecuteLW(Instruction inst)
 {
-    uint32_t address = inst.rs + inst.imm_se();
+    uint32_t address = inst.GetRs() + inst.GetImmSe();
     uint32_t value = LoadWord(address); 
-    SetRegister(inst.rt, value);
+    SetRegister(inst.GetRt(), value);
 
-    m_pendingLoad = {{inst.rt}, value};
+    m_pendingLoad = {{inst.GetRt()}, value};
 }
 
 void R3000A::ExecuteSLTU(Instruction inst)
 {
-    SetRegister(inst.rd, m_registers[inst.rs] < m_registers[inst.rt]);
+    SetRegister(inst.GetRd(), m_registers[inst.GetRs()] < m_registers[inst.GetRt()]);
 }
 
 void R3000A::ExecuteADDU(Instruction inst)
 {
-    SetRegister(inst.rd, m_registers[inst.rs] + m_registers[inst.rt]);
+    SetRegister(inst.GetRd(), m_registers[inst.GetRs()] + m_registers[inst.GetRt()]);
 }
 
 void R3000A::ExecuteSH(Instruction inst)
 {
-    const uint32_t address = inst.rs + inst.imm_se();
-    const uint16_t value = inst.rs;
+    const uint32_t address = inst.GetRs() + inst.GetImmSe();
+    const uint16_t value = inst.GetRs();
     StoreHalfWord(address, value);
 }
 
@@ -410,47 +409,47 @@ void R3000A::ExecuteJAL(Instruction inst)
     // Store return address in the RA register
     SetRegister(31, m_pc);
 
-    m_pc = (m_pc & 0xF0000000) | (inst.imm << 2);
+    m_pc = (m_pc & 0xF0000000) | (inst.GetImm() << 2);
 }
 
 void R3000A::ExecuteANDI(Instruction inst)
 {
-    SetRegister(inst.rt, inst.imm & inst.rs);
+    SetRegister(inst.GetRt(), inst.GetImm() & inst.GetRs());
 }
 
 void R3000A::ExecuteSB(Instruction inst)
 {
-    const uint32_t address = inst.rs + inst.imm_se();
-    const uint8_t value = inst.rs;
+    const uint32_t address = inst.GetRs() + inst.GetImmSe();
+    const uint8_t value = inst.GetRs();
     StoreHalfWord(address, value);
 }
 
 void R3000A::ExecuteJR(Instruction inst)
 {
     m_isBranching = true;
-    m_pc = m_registers[inst.rs];
+    m_pc = m_registers[inst.GetRs()];
 }
 
 void R3000A::ExecuteLB(Instruction inst)
 {
-    const uint32_t addr = inst.rs + inst.imm_se();
+    const uint32_t addr = inst.GetRs() + inst.GetImmSe();
 
     const int8_t value = LoadByte(addr);
 
-    m_pendingLoad = {{inst.rt}, value};
+    m_pendingLoad = {{inst.GetRt()}, value};
 }
 
 void R3000A::ExecuteBEQ(Instruction inst)
 {
-    if (m_registers[inst.rs] == m_registers[inst.rt])
+    if (m_registers[inst.GetRs()] == m_registers[inst.GetRt()])
     {
-        Branch(inst.imm_se());
+        Branch(inst.GetImmSe());
     }
 }
 
 void R3000A::ExecuteMFC0(Instruction inst)
 {
-    uint32_t cop0Reg = inst.rd;
+    uint32_t cop0Reg = inst.GetRd();
     if (cop0Reg != 0xC
         || cop0Reg != 0xD
         || cop0Reg != 0xE)
@@ -459,20 +458,20 @@ void R3000A::ExecuteMFC0(Instruction inst)
         return;
     }
 
-    SetRegister(inst.rt, m_sr);
+    SetRegister(inst.GetRt(), m_sr);
 
-    m_pendingLoad = {{inst.rt}, m_sr};
+    m_pendingLoad = {{inst.GetRt()}, m_sr};
 }
 
 void R3000A::ExecuteAND(Instruction inst)
 {
-    SetRegister(inst.rt, inst.imm & inst.rs);
+    SetRegister(inst.GetRt(), inst.GetImm() & inst.GetRs());
 }
 
 void R3000A::ExecuteADD(Instruction inst)
 {
-    const int32_t lhs = m_registers[inst.rs];
-    const int32_t rhs = m_registers[inst.rt];
+    const int32_t lhs = m_registers[inst.GetRs()];
+    const int32_t rhs = m_registers[inst.GetRt()];
 
     // Check for overflow.
     if (WouldOverflow(lhs, rhs, std::minus<int32_t>()))
@@ -480,107 +479,107 @@ void R3000A::ExecuteADD(Instruction inst)
         TriggerException(ExceptionCause::OVERFLOW);
     }   
  
-    SetRegister(inst.rd, lhs + rhs);
+    SetRegister(inst.GetRd(), lhs + rhs);
 }
 
 void R3000A::ExecuteBGTZ(Instruction inst)
 {
-    const int32_t value = m_registers[inst.rs];
+    const int32_t value = m_registers[inst.GetRs()];
     if (value > 0)
     {
-        Branch(inst.imm_se());
+        Branch(inst.GetImmSe());
     }
 }
 
 void R3000A::ExecuteBLEZ(Instruction inst)
 {
-    const int32_t value = m_registers[inst.rs];
+    const int32_t value = m_registers[inst.GetRs()];
     if (value <= 0)
     {
-        Branch(inst.imm_se());
+        Branch(inst.GetImmSe());
     }
 }
 
 void R3000A::ExecuteLBU(Instruction inst)
 {
-    const uint32_t addr = inst.rs + inst.imm;
+    const uint32_t addr = inst.GetRs() + inst.GetImm();
 
     const int8_t value = LoadByte(addr);
 
-    m_pendingLoad = {{inst.rt}, value};
+    m_pendingLoad = {{inst.GetRt()}, value};
 }
 
 void R3000A::ExecuteJALR(Instruction inst)
 {
     m_isBranching = true;
-    SetRegister(inst.rd, m_pc);
-    m_pc = m_registers[inst.rs];
+    SetRegister(inst.GetRd(), m_pc);
+    m_pc = m_registers[inst.GetRs()];
 }
 
 void R3000A::ExecuteBLTZ(Instruction inst)
 {
-    const int32_t value = m_registers[inst.rs];
+    const int32_t value = m_registers[inst.GetRs()];
     if (value < 0)
     {
-        Branch(inst.imm_se());
+        Branch(inst.GetImmSe());
     }
 }
 
 void R3000A::ExecuteBLTZAL(Instruction inst)
 {
-    const int32_t value = m_registers[inst.rs];
+    const int32_t value = m_registers[inst.GetRs()];
 
     // Store return address in the RA register
     SetRegister(31, m_pc);
 
     if (value < 0)
     {
-        Branch(inst.imm_se());
+        Branch(inst.GetImmSe());
     }
 }
 
 void R3000A::ExecuteBGEZ(Instruction inst)
 {
-    const int32_t value = m_registers[inst.rs];
+    const int32_t value = m_registers[inst.GetRs()];
     if (value > 0)
     {
-        Branch(inst.imm_se());
+        Branch(inst.GetImmSe());
     }
 }
 
 void R3000A::ExecuteBGEZAL(Instruction inst)
 {
-    const int32_t value = m_registers[inst.rs];
+    const int32_t value = m_registers[inst.GetRs()];
 
     // Store return address in the RA register
     SetRegister(31, m_pc);
 
     if (value > 0)
     {
-        Branch(inst.imm_se());
+        Branch(inst.GetImmSe());
     }
 }
 
 void R3000A::ExecuteSLTI(Instruction inst)
 {
-    SetRegister(inst.rt, static_cast<int32_t>(m_registers[inst.rs]) < inst.imm_se());
+    SetRegister(inst.GetRt(), static_cast<int32_t>(m_registers[inst.GetRs()]) < inst.GetImmSe());
 }
 
 void R3000A::ExecuteSUBU(Instruction inst)
 {
-    SetRegister(inst.rd, m_registers[inst.rs] - m_registers[inst.rt]);
+    SetRegister(inst.GetRd(), m_registers[inst.GetRs()] - m_registers[inst.GetRt()]);
 }
 
 void R3000A::ExecuteSRA(Instruction inst)
 {
-    const uint32_t value = (static_cast<int32_t>(inst.rt) >> inst.shamt);
-    SetRegister(inst.rd, value);
+    const uint32_t value = (static_cast<int32_t>(inst.GetRt()) >> inst.GetShamt());
+    SetRegister(inst.GetRd(), value);
 }
 
 void R3000A::ExecuteDIV(Instruction inst)
 {
-    const int32_t numerator = m_registers[inst.rs];
-    const int32_t denominator = m_registers[inst.rt];
+    const int32_t numerator = m_registers[inst.GetRs()];
+    const int32_t denominator = m_registers[inst.GetRt()];
 
     if (denominator == 0)
     {
@@ -603,23 +602,23 @@ void R3000A::ExecuteDIV(Instruction inst)
 
 void R3000A::ExecuteMFLO(Instruction inst)
 {
-    SetRegister(inst.rd, m_lo);
+    SetRegister(inst.GetRd(), m_lo);
 }
 
 void R3000A::ExecuteSRL(Instruction inst)
 {
-    SetRegister(inst.rd, inst >> inst.shamt);
+    SetRegister(inst.GetRd(), inst >> inst.GetShamt());
 }
 
 void R3000A::ExecuteSLTIU(Instruction inst)
 {
-    SetRegister(inst.rt, m_registers[inst.rs] < inst.imm_se());
+    SetRegister(inst.GetRt(), m_registers[inst.GetRs()] < inst.GetImmSe());
 }
 
 void R3000A::ExecuteDIVU(Instruction inst)
 {
-    const uint32_t numerator = m_registers[inst.rs];
-    const uint32_t denominator = m_registers[inst.rt];
+    const uint32_t numerator = m_registers[inst.GetRs()];
+    const uint32_t denominator = m_registers[inst.GetRt()];
 
     if (denominator == 0)
     {
@@ -636,12 +635,12 @@ void R3000A::ExecuteDIVU(Instruction inst)
 
 void R3000A::ExecuteMFHI(Instruction inst)
 {
-    SetRegister(inst.rd, m_hi);
+    SetRegister(inst.GetRd(), m_hi);
 }
 
 void R3000A::ExecuteSLT(Instruction inst)
 {
-    SetRegister(inst.rd, static_cast<int32_t>(m_registers[inst.rs]) < static_cast<int32_t>(m_registers[inst.rt]));
+    SetRegister(inst.GetRd(), static_cast<int32_t>(m_registers[inst.GetRs()]) < static_cast<int32_t>(m_registers[inst.GetRt()]));
 }
 
 void R3000A::ExecuteSYSCALL(Instruction inst)
@@ -651,12 +650,12 @@ void R3000A::ExecuteSYSCALL(Instruction inst)
 
 void R3000A::ExecuteMTLO(Instruction inst)
 {
-    SetRegister(m_lo, inst.rs);
+    SetRegister(m_lo, inst.GetRs());
 }
 
 void R3000A::ExecuteMTHI(Instruction inst)
 {
-    SetRegister(m_hi, inst.rs);
+    SetRegister(m_hi, inst.GetRs());
 }
 
 void R3000A::ExecuteRFE(Instruction inst)
@@ -671,51 +670,51 @@ void R3000A::ExecuteRFE(Instruction inst)
 
 void R3000A::ExecuteLHU(Instruction inst)
 {
-    const uint32_t addr = inst.rs + inst.imm_se();
+    const uint32_t addr = inst.GetRs() + inst.GetImmSe();
 
     // TODO: Subtle bug here and in all memory related operations
     //       The problem is that a load/store shouldn't be completed
     //       if an exception is triggered
     const uint32_t value = LoadHalfWord(addr);
 
-    m_pendingLoad = {{inst.rt}, value};
+    m_pendingLoad = {{inst.GetRt()}, value};
 }
 
 void R3000A::ExecuteSLLV(Instruction inst)
 {
     // Shift amount is truncated to 5 bits
-    SetRegister(inst.rd, m_registers[inst.rt] << (m_registers[inst.rs] & 0x1F));
+    SetRegister(inst.GetRd(), m_registers[inst.GetRt()] << (m_registers[inst.GetRs()] & 0x1F));
 }
 
 void R3000A::ExecuteLH(Instruction inst)
 {
-    const uint32_t addr = inst.rs + inst.imm_se();
+    const uint32_t addr = inst.GetRs() + inst.GetImmSe();
 
     const int16_t value = LoadHalfWord(addr);
 
-    m_pendingLoad = {{inst.rt}, value};
+    m_pendingLoad = {{inst.GetRt()}, value};
 }
 
 void R3000A::ExecuteNOR(Instruction inst)
 {
-    SetRegister(inst.rd, !(m_registers[inst.rs] | m_registers[inst.rt]));
+    SetRegister(inst.GetRd(), !(m_registers[inst.GetRs()] | m_registers[inst.GetRt()]));
 }
 
 void R3000A::ExecuteSRAV(Instruction inst)
 {
     // Shift amount is truncated to 5 bits
-    SetRegister(inst.rd, static_cast<int32_t>(m_registers[inst.rt]) >> (m_registers[inst.rs] & 0x1F));
+    SetRegister(inst.GetRd(), static_cast<int32_t>(m_registers[inst.GetRt()]) >> (m_registers[inst.GetRs()] & 0x1F));
 }
 
 void R3000A::ExecuteSRLV(Instruction inst)
 {
     // Shift amount is truncated to 5 bits
-    SetRegister(inst.rd, m_registers[inst.rt] >> (m_registers[inst.rs] & 0x1F));
+    SetRegister(inst.GetRd(), m_registers[inst.GetRt()] >> (m_registers[inst.GetRs()] & 0x1F));
 }
 
 void R3000A::ExecuteMULTU(Instruction inst)
 {
-    const uint64_t value = m_registers[inst.rs] * m_registers[inst.rt];
+    const uint64_t value = m_registers[inst.GetRs()] * m_registers[inst.GetRt()];
 
     m_hi = value >> 32;
     m_lo = value;
@@ -723,7 +722,7 @@ void R3000A::ExecuteMULTU(Instruction inst)
 
 void R3000A::ExecuteXOR(Instruction inst)
 {
-    SetRegister(inst.rd, m_registers[inst.rs] ^ m_registers[inst.rt]);
+    SetRegister(inst.GetRd(), m_registers[inst.GetRs()] ^ m_registers[inst.GetRt()]);
 }
 
 void R3000A::ExecuteBREAK(Instruction inst)
@@ -733,8 +732,8 @@ void R3000A::ExecuteBREAK(Instruction inst)
 
 void R3000A::ExecuteMULT(Instruction inst)
 {
-    const int64_t lhs = m_registers[inst.rs];
-    const int64_t rhs = m_registers[inst.rt];
+    const int64_t lhs = m_registers[inst.GetRs()];
+    const int64_t rhs = m_registers[inst.GetRt()];
 
     const uint64_t result = lhs * rhs;
 
@@ -744,8 +743,8 @@ void R3000A::ExecuteMULT(Instruction inst)
 
 void R3000A::ExecuteSUB(Instruction inst)
 {
-    const int32_t lhs = m_registers[inst.rs];
-    const int32_t rhs = m_registers[inst.rt];
+    const int32_t lhs = m_registers[inst.GetRs()];
+    const int32_t rhs = m_registers[inst.GetRt()];
 
     // Check for overflow.
     if (WouldOverflow(lhs, rhs, std::plus<int32_t>()))
@@ -753,12 +752,12 @@ void R3000A::ExecuteSUB(Instruction inst)
         TriggerException(ExceptionCause::OVERFLOW);
     }
 
-    SetRegister(inst.rd, lhs - rhs);
+    SetRegister(inst.GetRd(), lhs - rhs);
 }
 
 void R3000A::ExecuteXORI(Instruction inst)
 {
-    SetRegister(inst.rt, inst.imm ^ inst.rs);
+    SetRegister(inst.GetRt(), inst.GetImm() ^ inst.GetRs());
 }
 
 void R3000A::ExecuteCOP1(Instruction inst)
@@ -778,12 +777,12 @@ void R3000A::ExecuteCOP3(Instruction inst)
 
 void R3000A::ExecuteLWL(Instruction inst)
 {
-    const uint32_t address = m_registers[inst.rs] + inst.imm_se();
+    const uint32_t address = m_registers[inst.GetRs()] + inst.GetImmSe();
 
     // This instruction bypasses the load delay restriction:
     // this instruction will merge the new contents with the
     // value currently being loaded if need be.
-    const uint32_t curValue = m_outputRegisters[inst.rt];
+    const uint32_t curValue = m_outputRegisters[inst.GetRt()];
 
     // Next, we load the *aligned* word containing the first
     // addressed byte
@@ -811,17 +810,17 @@ void R3000A::ExecuteLWL(Instruction inst)
             assert(false && "You've reached the unreachable!");
     }
 
-    m_pendingLoad = {{inst.rt}, newValue};
+    m_pendingLoad = {{inst.GetRt()}, newValue};
 }
 
 void R3000A::ExecuteLWR(Instruction inst)
 {
-    const uint32_t address = m_registers[inst.rs] + inst.imm_se();
+    const uint32_t address = m_registers[inst.GetRs()] + inst.GetImmSe();
 
     // This instruction bypasses the load delay restriction:
     // this instruction will merge the new contents with the
     // value currently being loaded if need be.
-    const uint32_t curValue = m_outputRegisters[inst.rt];
+    const uint32_t curValue = m_outputRegisters[inst.GetRt()];
 
     // Next, we load the *aligned* word containing the first
     // addressed byte
@@ -849,13 +848,13 @@ void R3000A::ExecuteLWR(Instruction inst)
             assert(false && "You've reached the unreachable!");
     }
 
-    m_pendingLoad = {{inst.rt}, newValue};
+    m_pendingLoad = {{inst.GetRt()}, newValue};
 }
 
 void R3000A::ExecuteSWL(Instruction inst)
 {
-    const uint32_t address = m_registers[inst.rs] + inst.imm_se();
-    const uint32_t value = m_registers[inst.rt];
+    const uint32_t address = m_registers[inst.GetRs()] + inst.GetImmSe();
+    const uint32_t value = m_registers[inst.GetRt()];
 
     const uint32_t alignedAddr = address & !3;
 
@@ -886,8 +885,8 @@ void R3000A::ExecuteSWL(Instruction inst)
 
 void R3000A::ExecuteSWR(Instruction inst)
 {
-    const uint32_t address = m_registers[inst.rs] + inst.imm_se();
-    const uint32_t value = m_registers[inst.rt];
+    const uint32_t address = m_registers[inst.GetRs()] + inst.GetImmSe();
+    const uint32_t value = m_registers[inst.GetRt()];
 
     const uint32_t alignedAddr = address & !3;
 
