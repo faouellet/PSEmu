@@ -1,9 +1,20 @@
-#include <iostream>
+#include "src/cpu/r3000a.h"
+#include "src/memory/bios.h"
+
+using namespace PSEmu;
 
 int main()
 {
-    int16_t i{};
+    BIOS bios;
+    bios.Init("SCPH1001.BIN");
 
-    std::cout << "Hello world\n";
+    Interconnect interconnect{std::move(bios)};
+    R3000A cpu{std::move(interconnect)};
+
+    for(;;)
+    {
+        cpu.Step();
+    }
+
     return 0;
 }

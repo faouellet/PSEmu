@@ -11,6 +11,8 @@ namespace PSEmu
 class BIOS
 {
 public:
+    BIOS() = default;
+
     // It should not be possible to copy an instance of this class
     BIOS(const BIOS&) = delete;
     BIOS& operator=(const BIOS&) = delete;
