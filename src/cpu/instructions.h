@@ -34,6 +34,8 @@ union Instruction
         unsigned int funct  : 6;    /**< Function field */   
     };
 
+    uint32_t IntRep;
+
     uint32_t imm_se() const 
     { 
         // TODO: validate
@@ -58,7 +60,7 @@ union Instruction
 
     operator uint32_t () const
     {
-        return *this;
+        return IntRep;
     }
 };
 

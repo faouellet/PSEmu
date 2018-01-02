@@ -48,8 +48,12 @@ void R3000A::Step()
     auto foundIt = std::find_if(m_opTable.cbegin(), m_opTable.cend(), 
                                 [&instToExec, this](const auto& opFtor)
                                 { 
-                                    const uint32_t instOpcode = instToExec & OPCODE_PATTERN;
-                                    return (opFtor.first & instOpcode) == 0; 
+                                    uint32_t instOpcode = instToExec & PRIMARY_OPCODE_PATTERN;
+                                    if (instOpcode == 0)
+                                    {
+                                        instOpcode = instToExec & SECONDARY_OPCODE_PATTERN;
+                                    }
+                                    return opFtor.first == instOpcode;
                                 });
 
     if (foundIt != m_opTable.cend())
@@ -68,7 +72,7 @@ void R3000A::Step()
 
 void R3000A::Reset()
 {
-    m_pc = BIOS_ADDRESS;
+    m_pc = 0xBFC00000;
     m_nextPC = m_pc + 4;
     m_registers.fill(0x0);
     m_outputRegisters.fill(0x0);

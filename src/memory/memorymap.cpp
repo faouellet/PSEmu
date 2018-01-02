@@ -27,6 +27,7 @@ const Utils::Range EXPANSION_1_RANGE{EXPANSION_1_ADDRESS, 8 * 1024 * 1024};
 const Utils::Range EXPANSION_2_RANGE{EXPANSION_2_ADDRESS, 66};
 const Utils::Range IRQ_CONTROL_RANGE{IRQ_CONTROL_ADDRESS, 8};
 const Utils::Range TIMERS_RANGE{DMA_ADDRESS, 0x80};
+const Utils::Range DMA_RANGE{DMA_ADDRESS, 0x74};
 const Utils::Range GPU_RANGE{GPU_ADDRESS, 0x8};
 
 const std::array<uint32_t, 8> REGION_MASK{
