@@ -311,13 +311,13 @@ void R3000A::ExecuteLUI(Instruction inst)
 
 void R3000A::ExecuteORI(Instruction inst)
 {
-    SetRegister(inst.GetRt(), inst.GetImm() | inst.GetRs());
+    SetRegister(inst.GetRt(), inst.GetImm() | m_registers[inst.GetRs()]);
 }
 
 void R3000A::ExecuteSW(Instruction inst)
 {
-    const uint32_t address = inst.GetRs() + inst.GetImmSe();
-    const uint32_t value = inst.GetRs();
+    const uint32_t address = m_registers[inst.GetRs()] + inst.GetImmSe();
+    const uint32_t value = m_registers[inst.GetRt()];
     StoreWord(address, value);
 }
 
@@ -378,7 +378,7 @@ void R3000A::ExecuteADDI(Instruction inst)
 
 void R3000A::ExecuteLW(Instruction inst)
 {
-    uint32_t address = inst.GetRs() + inst.GetImmSe();
+    uint32_t address = m_registers[inst.GetRs()] + inst.GetImmSe();
     uint32_t value = LoadWord(address); 
     SetRegister(inst.GetRt(), value);
 
@@ -397,8 +397,8 @@ void R3000A::ExecuteADDU(Instruction inst)
 
 void R3000A::ExecuteSH(Instruction inst)
 {
-    const uint32_t address = inst.GetRs() + inst.GetImmSe();
-    const uint16_t value = inst.GetRs();
+    const uint32_t address = m_registers[inst.GetRs()] + inst.GetImmSe();
+    const uint16_t value = m_registers[inst.GetRs()];
     StoreHalfWord(address, value);
 }
 
@@ -414,13 +414,13 @@ void R3000A::ExecuteJAL(Instruction inst)
 
 void R3000A::ExecuteANDI(Instruction inst)
 {
-    SetRegister(inst.GetRt(), inst.GetImm() & inst.GetRs());
+    SetRegister(inst.GetRt(), inst.GetImm() & m_registers[inst.GetRs()]);
 }
 
 void R3000A::ExecuteSB(Instruction inst)
 {
-    const uint32_t address = inst.GetRs() + inst.GetImmSe();
-    const uint8_t value = inst.GetRs();
+    const uint32_t address = m_registers[inst.GetRs()] + inst.GetImmSe();
+    const uint8_t value = m_registers[inst.GetRs()];
     StoreHalfWord(address, value);
 }
 
@@ -432,8 +432,7 @@ void R3000A::ExecuteJR(Instruction inst)
 
 void R3000A::ExecuteLB(Instruction inst)
 {
-    const uint32_t addr = inst.GetRs() + inst.GetImmSe();
-
+    const uint32_t addr = m_registers[inst.GetRs()] + inst.GetImmSe();
     const int8_t value = LoadByte(addr);
 
     m_pendingLoad = {{inst.GetRt()}, value};
@@ -465,7 +464,7 @@ void R3000A::ExecuteMFC0(Instruction inst)
 
 void R3000A::ExecuteAND(Instruction inst)
 {
-    SetRegister(inst.GetRt(), inst.GetImm() & inst.GetRs());
+    SetRegister(inst.GetRt(), inst.GetImm() & m_registers[inst.GetRs()]);
 }
 
 void R3000A::ExecuteADD(Instruction inst)
@@ -502,8 +501,7 @@ void R3000A::ExecuteBLEZ(Instruction inst)
 
 void R3000A::ExecuteLBU(Instruction inst)
 {
-    const uint32_t addr = inst.GetRs() + inst.GetImm();
-
+    const uint32_t addr = m_registers[inst.GetRs()] + inst.GetImm();
     const int8_t value = LoadByte(addr);
 
     m_pendingLoad = {{inst.GetRt()}, value};
@@ -650,12 +648,12 @@ void R3000A::ExecuteSYSCALL(Instruction inst)
 
 void R3000A::ExecuteMTLO(Instruction inst)
 {
-    SetRegister(m_lo, inst.GetRs());
+    SetRegister(m_lo, m_registers[inst.GetRs()]);
 }
 
 void R3000A::ExecuteMTHI(Instruction inst)
 {
-    SetRegister(m_hi, inst.GetRs());
+    SetRegister(m_hi, m_registers[inst.GetRs()]);
 }
 
 void R3000A::ExecuteRFE(Instruction inst)
@@ -670,7 +668,7 @@ void R3000A::ExecuteRFE(Instruction inst)
 
 void R3000A::ExecuteLHU(Instruction inst)
 {
-    const uint32_t addr = inst.GetRs() + inst.GetImmSe();
+    const uint32_t addr = m_registers[inst.GetRs()] + inst.GetImmSe();
 
     // TODO: Subtle bug here and in all memory related operations
     //       The problem is that a load/store shouldn't be completed
@@ -688,8 +686,7 @@ void R3000A::ExecuteSLLV(Instruction inst)
 
 void R3000A::ExecuteLH(Instruction inst)
 {
-    const uint32_t addr = inst.GetRs() + inst.GetImmSe();
-
+    const uint32_t addr = m_registers[inst.GetRs()] + inst.GetImmSe();
     const int16_t value = LoadHalfWord(addr);
 
     m_pendingLoad = {{inst.GetRt()}, value};
@@ -757,7 +754,7 @@ void R3000A::ExecuteSUB(Instruction inst)
 
 void R3000A::ExecuteXORI(Instruction inst)
 {
-    SetRegister(inst.GetRt(), inst.GetImm() ^ inst.GetRs());
+    SetRegister(inst.GetRt(), inst.GetImm() ^ m_registers[inst.GetRs()]);
 }
 
 void R3000A::ExecuteCOP1(Instruction inst)
