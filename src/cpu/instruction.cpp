@@ -8,16 +8,21 @@ Instruction::Instruction() : m_intRep{ 0xDEADBEEF } { }
 
 Instruction::Instruction(uint32_t val) : m_intRep{ val } { }
 
+uint32_t Instruction::GetImm() const
+{
+    return m_intRep & 0xFFFF;
+}
+
+uint32_t Instruction::GetImmJump() const
+{
+    return m_intRep & 0x3FFFFFF;
+}
+
 uint32_t Instruction::GetImmSe() const 
 { 
     // TODO: validate
     int16_t res = GetImm();
     return res; 
-}
-
-uint32_t Instruction::GetImm() const
-{
-    return m_intRep & 0xFFFF;
 }
 
 uint32_t Instruction::GetOp() const

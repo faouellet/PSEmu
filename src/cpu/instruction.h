@@ -13,8 +13,9 @@ public:
     Instruction(uint32_t val);
 
 public:
-    uint32_t GetImmSe() const;
     uint32_t GetImm() const;
+    uint32_t GetImmJump() const;
+    uint32_t GetImmSe() const;
     uint32_t GetOp() const;
     uint32_t GetRd() const;
     uint32_t GetRs() const;
