@@ -66,6 +66,7 @@ void R3000A::Step()
     }
     else
     {
+        assert(false && "ILLEGAL INSTRUCTION!!!");
         TriggerException(ExceptionCause::ILLEGAL_INSTRUCTION);
     }
 }
@@ -250,7 +251,7 @@ void R3000A::Branch(uint32_t offset)
 {
     m_isBranching = true;
     const uint32_t alignedOffset = offset << 2;
-    m_pc += alignedOffset;
+    m_nextPC += alignedOffset;
 }
 
 bool R3000A::WouldOverflow(int32_t lhs, int32_t rhs, std::function<int32_t(int32_t,int32_t)>&& func) const
@@ -334,7 +335,7 @@ void R3000A::ExecuteADDIU(Instruction inst)
 void R3000A::ExecuteJ(Instruction inst)
 {
     m_isBranching = true;
-    m_pc = (m_pc & 0xF0000000) | (inst.GetImm() << 2);
+    m_nextPC = (m_pc & 0xF0000000) | (inst.GetImmJump() << 2);
 }
 
 void R3000A::ExecuteOR(Instruction inst)
@@ -409,7 +410,7 @@ void R3000A::ExecuteJAL(Instruction inst)
     // Store return address in the RA register
     SetRegister(31, m_pc);
 
-    m_pc = (m_pc & 0xF0000000) | (inst.GetImm() << 2);
+    m_nextPC = (m_pc & 0xF0000000) | (inst.GetImm() << 2);
 }
 
 void R3000A::ExecuteANDI(Instruction inst)
@@ -427,7 +428,7 @@ void R3000A::ExecuteSB(Instruction inst)
 void R3000A::ExecuteJR(Instruction inst)
 {
     m_isBranching = true;
-    m_pc = m_registers[inst.GetRs()];
+    m_nextPC = m_registers[inst.GetRs()];
 }
 
 void R3000A::ExecuteLB(Instruction inst)
@@ -511,7 +512,7 @@ void R3000A::ExecuteJALR(Instruction inst)
 {
     m_isBranching = true;
     SetRegister(inst.GetRd(), m_pc);
-    m_pc = m_registers[inst.GetRs()];
+    m_nextPC = m_registers[inst.GetRs()];
 }
 
 void R3000A::ExecuteBLTZ(Instruction inst)
