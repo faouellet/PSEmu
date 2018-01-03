@@ -85,8 +85,8 @@ namespace PSEmu
         BGEZAL  = 0x04110000,
 
         // COP0
-        MTC0,
-        MFC0,
+        MTC0    = 0x40800000,
+        MFC0    = 0x40000000,
         RFE     = 0x42000010,
     };
 }   // end namespace PSEmu
