@@ -99,9 +99,11 @@ void R3000A::InitOpTable()
     m_opTable[ADDI]     = &R3000A::ExecuteADDI;
     m_opTable[LW]       = &R3000A::ExecuteLW;
     m_opTable[SLTU]     = &R3000A::ExecuteSLTU;
+    m_opTable[ADDU]     = &R3000A::ExecuteADDU;
     m_opTable[SH]       = &R3000A::ExecuteSH;
     m_opTable[JAL]      = &R3000A::ExecuteJAL;
     m_opTable[ANDI]     = &R3000A::ExecuteANDI;
+    m_opTable[SB]       = &R3000A::ExecuteSB;
     m_opTable[JR]       = &R3000A::ExecuteJR;
     m_opTable[LB]       = &R3000A::ExecuteLB;
     m_opTable[BEQ]      = &R3000A::ExecuteBEQ;
@@ -256,7 +258,7 @@ void R3000A::Branch(uint32_t offset)
 
 bool R3000A::WouldOverflow(int32_t lhs, int32_t rhs, std::function<int32_t(int32_t,int32_t)>&& func) const
 {
-    return lhs > func(rhs, std::numeric_limits<int32_t>::max());
+    return lhs > func(std::numeric_limits<int32_t>::max(), rhs);
 }
 
 void R3000A::SetRegister(uint32_t registerIndex, uint32_t value)
@@ -381,7 +383,6 @@ void R3000A::ExecuteLW(Instruction inst)
 {
     uint32_t address = m_registers[inst.GetRs()] + inst.GetImmSe();
     uint32_t value = LoadWord(address); 
-    SetRegister(inst.GetRt(), value);
 
     m_pendingLoad = {{inst.GetRt()}, value};
 }
@@ -405,12 +406,10 @@ void R3000A::ExecuteSH(Instruction inst)
 
 void R3000A::ExecuteJAL(Instruction inst)
 {
-    m_isBranching = true;
-
     // Store return address in the RA register
     SetRegister(31, m_pc);
 
-    m_nextPC = (m_pc & 0xF0000000) | (inst.GetImm() << 2);
+    ExecuteJ(inst);
 }
 
 void R3000A::ExecuteANDI(Instruction inst)
@@ -422,7 +421,7 @@ void R3000A::ExecuteSB(Instruction inst)
 {
     const uint32_t address = m_registers[inst.GetRs()] + inst.GetImmSe();
     const uint8_t value = m_registers[inst.GetRs()];
-    StoreHalfWord(address, value);
+    StoreByte(address, value);
 }
 
 void R3000A::ExecuteJR(Instruction inst)
