@@ -145,6 +145,10 @@ void Interconnect::StoreWord(uint32_t address, uint32_t value)
     {
         // TODO: Not implemented yet!
     }
+    else if (auto offset = RAM_RANGE.Contains(physAddr))
+    {
+        m_ram.StoreWord(*offset, value);
+    }
 
     // TODO: PANIC!!!
 }

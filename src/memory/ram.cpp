@@ -40,7 +40,7 @@ void RAM::StoreByte(uint32_t offset, uint8_t value)
 void RAM::StoreHalfWord(uint32_t offset, uint16_t value)
 {
     const uint8_t byte0 = value;
-    const uint8_t byte1 = value << 8;
+    const uint8_t byte1 = value >> 8;
 
     m_data[offset + 0] = byte0;
     m_data[offset + 1] = byte1;
@@ -49,9 +49,9 @@ void RAM::StoreHalfWord(uint32_t offset, uint16_t value)
 void RAM::StoreWord(uint32_t offset, uint32_t value)
 {
     const uint8_t byte0 = value;
-    const uint8_t byte1 = value << 8;
-    const uint8_t byte2 = value << 16;
-    const uint8_t byte3 = value << 24;
+    const uint8_t byte1 = value >> 8;
+    const uint8_t byte2 = value >> 16;
+    const uint8_t byte3 = value >> 24;
 
     m_data[offset + 0] = byte0;
     m_data[offset + 1] = byte1;
