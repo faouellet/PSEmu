@@ -53,6 +53,8 @@ uint32_t GPU::GetStatus() const
             case DMADirection::CPU_TO_GP0: return (status >> 28) & 1;
             // Should be the same as status bit 28
             case DMADirection::VRAM_TO_CPU: return (status >> 27) & 1;
+            // TODO: Return something better?
+            default: return 0u;
         }
     }() << 25;
 
@@ -165,7 +167,7 @@ void GPU::SetGP1DisplayMode(uint32_t value)
 
     m_interlaced = (value & 0x20) != 0;
 
-    assert(value & 0x80 == 0 && "Unsupported display mode");
+    assert(((value & 0x80) == 0) && "Unsupported display mode");
 }
 
 void GPU::SetGP1DMADirection(uint32_t value)

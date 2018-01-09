@@ -89,26 +89,33 @@ void DMA::DMARegisterWrite(uint32_t offset, uint32_t value)
                 switch (minor)
                 {
                     case 0:
-                        return chan.SetBase(value);
+                        chan.SetBase(value);
+                        break;
                     case 4:
-                        return chan.SetBlockControl(value);
+                        chan.SetBlockControl(value);
+                        break;
                     case 8:
-                        return chan.SetControl(value);
+                        chan.SetControl(value);
+                        break;
                     default:
                         assert(false && "Unhandled DMA read");
                 }
+                break;
             }
         case 7:
         {
             switch (minor)
             {
                 case 0:
-                    return SetControl(value);
+                    SetControl(value);
+                    break;
                 case 4:
-                    return SetInterrupt(value);
+                    SetInterrupt(value);
+                    break;
                 default:
                     assert(false && "Unhandled DMA read");    
             }
+            break;
         }
         default:
             assert(false && "Unhandled DMA read");
@@ -133,7 +140,7 @@ bool DMA::GetIRQ() const
 
 uint32_t DMA::GetInterrupt() const
 {
-    uint32_t interrupt;
+    uint32_t interrupt{};
 
     interrupt |= m_dummy;
     interrupt |= static_cast<uint32_t>(m_forceIRQ) << 15;
@@ -197,7 +204,7 @@ void DMA::DoMemoryBlockCopy(Port port)
 
     while (remainingSize > 0)
     {
-        uint32_t curAddr = address & 0x1FFFFC;
+        //uint32_t curAddr = address & 0x1FFFFC;
 
         if (chan.GetDirection() == Direction::FROM_RAM)
         {
@@ -206,16 +213,16 @@ void DMA::DoMemoryBlockCopy(Port port)
         }
         else
         {
-            uint32_t srcWord;
+            //uint32_t srcWord;
             if (port == Port::OTC)
             {
                 if (remainingSize == 1)
                 {
-                    srcWord = 0xFFFFFF;
+                    //srcWord = 0xFFFFFF;
                 }
                 else
                 {
-                    srcWord = (address - 4) & 0x1FFFFF;
+                    //srcWord = (address - 4) & 0x1FFFFF;
                 }
             }
             else
@@ -238,7 +245,7 @@ void DMA::DoLinkedListCopy(Port port)
 {
     Channel& chan = GetChannel(port);
 
-    const int32_t increment = chan.GetStep() == Step::INCREMENT ? 4 : -4;
+    //const int32_t increment = chan.GetStep() == Step::INCREMENT ? 4 : -4;
     uint32_t& address = chan.GetBase();
 
     if (chan.GetDirection() == Direction::TO_RAM)
@@ -265,7 +272,8 @@ void DMA::DoLinkedListCopy(Port port)
         while (remainingSize > 0)
         {
             address = (address + 4) & 0x1FFFFC;
-            const uint32_t command = 0; // TODO: Load from RAM
+            // TODO: Load from RAM
+            //const uint32_t command = 0;
 
             --remainingSize;
         }

@@ -162,7 +162,7 @@ void R3000A::InitOpTable()
 
 uint8_t R3000A::LoadByte(uint32_t address)
 {
-    if (m_sr & 0x10000 != 0)
+    if ((m_sr & 0x10000) != 0)
     {
         // TODO: Msg -> Cache is isolated, load ignored
         return -1;
@@ -172,7 +172,7 @@ uint8_t R3000A::LoadByte(uint32_t address)
 
 uint16_t R3000A::LoadHalfWord(uint32_t address)
 {
-    if (m_sr & 0x10000 != 0)
+    if ((m_sr & 0x10000) != 0)
     {
         // TODO: Msg -> Cache is isolated, load ignored
         return -1;
@@ -190,6 +190,7 @@ uint16_t R3000A::LoadHalfWord(uint32_t address)
 uint32_t R3000A::LoadWord(uint32_t address)
 {
     if (m_sr & 0x10000 != 0)
+    if ((m_sr & 0x10000) != 0)
     {
         // TODO: Msg -> Cache is isolated, load ignored
         return -1;
@@ -207,6 +208,7 @@ uint32_t R3000A::LoadWord(uint32_t address)
 void R3000A::StoreByte(uint32_t address, uint8_t value)
 {
     if (m_sr & 0x10000 != 0)
+    if ((m_sr & 0x10000) != 0)
     {
         // TODO: Msg -> Cache is isolated, write ignored
         return;
@@ -217,6 +219,7 @@ void R3000A::StoreByte(uint32_t address, uint8_t value)
 void R3000A::StoreHalfWord(uint32_t address, uint16_t value)
 {
     if (m_sr & 0x10000 != 0)
+    if ((m_sr & 0x10000) != 0)
     {
         // TODO: Msg -> Cache is isolated, write ignored
         return;
@@ -234,6 +237,7 @@ void R3000A::StoreHalfWord(uint32_t address, uint16_t value)
 void R3000A::StoreWord(uint32_t address, uint32_t value)
 {
     if (m_sr & 0x10000 != 0)
+    if ((m_sr & 0x10000) != 0)
     {
         // TODO: Msg -> Cache is isolated, write ignored
         return;
@@ -288,6 +292,7 @@ void R3000A::TriggerException(ExceptionCause cause)
 
     // Update the CAUSE register with the exception code (bits [6:2])
     m_cause <<= 2;
+    m_cause = static_cast<uint32_t>(cause) << 2;
 
     // Save current instruction address in EPC
     m_epc = m_currentPC;
@@ -560,6 +565,7 @@ void R3000A::ExecuteBGEZAL(Instruction inst)
 void R3000A::ExecuteSLTI(Instruction inst)
 {
     SetRegister(inst.GetRt(), static_cast<int32_t>(m_registers[inst.GetRs()]) < inst.GetImmSe());
+    SetRegister(inst.GetRt(), static_cast<int32_t>(m_registers[inst.GetRs()]) < static_cast<int32_t>(inst.GetImmSe()));
 }
 
 void R3000A::ExecuteSUBU(Instruction inst)
@@ -641,6 +647,7 @@ void R3000A::ExecuteSLT(Instruction inst)
 }
 
 void R3000A::ExecuteSYSCALL(Instruction inst)
+void R3000A::ExecuteSYSCALL(Instruction)
 {
     TriggerException(ExceptionCause::SYSCALL);
 }
@@ -656,6 +663,7 @@ void R3000A::ExecuteMTHI(Instruction inst)
 }
 
 void R3000A::ExecuteRFE(Instruction inst)
+void R3000A::ExecuteRFE(Instruction)
 {
     // Restore the pre-exception mode by shifting the
     // Interrupt Enable/User Mode stack back to its 
@@ -722,6 +730,7 @@ void R3000A::ExecuteXOR(Instruction inst)
 }
 
 void R3000A::ExecuteBREAK(Instruction inst)
+void R3000A::ExecuteBREAK(Instruction)
 {
     TriggerException(ExceptionCause::BREAK);
 }
@@ -757,16 +766,19 @@ void R3000A::ExecuteXORI(Instruction inst)
 }
 
 void R3000A::ExecuteCOP1(Instruction inst)
+void R3000A::ExecuteCOP1(Instruction)
 {
     TriggerException(ExceptionCause::COPROCESSOR_ERROR);
 }
 
 void R3000A::ExecuteCOP2(Instruction inst)
+void R3000A::ExecuteCOP2(Instruction)
 {
     // TODO: Not implemented yet!
 }
 
 void R3000A::ExecuteCOP3(Instruction inst)
+void R3000A::ExecuteCOP3(Instruction)
 {
     TriggerException(ExceptionCause::COPROCESSOR_ERROR);
 }
@@ -912,41 +924,49 @@ void R3000A::ExecuteSWR(Instruction inst)
 }
 
 void R3000A::ExecuteLWC0(Instruction inst)
+void R3000A::ExecuteLWC0(Instruction)
 {
     TriggerException(ExceptionCause::COPROCESSOR_ERROR);
 }
 
 void R3000A::ExecuteLWC1(Instruction inst)
+void R3000A::ExecuteLWC1(Instruction)
 {
     TriggerException(ExceptionCause::COPROCESSOR_ERROR);
 }
 
 void R3000A::ExecuteLWC2(Instruction inst)
+void R3000A::ExecuteLWC2(Instruction)
 {
     // TODO: Not implemented yet!
 }
 
 void R3000A::ExecuteLWC3(Instruction inst)
+void R3000A::ExecuteLWC3(Instruction)
 {
     TriggerException(ExceptionCause::COPROCESSOR_ERROR);
 }
 
 void R3000A::ExecuteSWC0(Instruction inst)
+void R3000A::ExecuteSWC0(Instruction)
 {
     TriggerException(ExceptionCause::COPROCESSOR_ERROR);
 }
 
 void R3000A::ExecuteSWC1(Instruction inst)
+void R3000A::ExecuteSWC1(Instruction)
 {
     TriggerException(ExceptionCause::COPROCESSOR_ERROR);
 }
 
 void R3000A::ExecuteSWC2(Instruction inst)
+void R3000A::ExecuteSWC2(Instruction)
 {
     // TODO: Not implemented yet!
 }
 
 void R3000A::ExecuteSWC3(Instruction inst)
+void R3000A::ExecuteSWC3(Instruction)
 {
     TriggerException(ExceptionCause::COPROCESSOR_ERROR);
 }

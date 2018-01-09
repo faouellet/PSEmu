@@ -43,7 +43,7 @@ public:
     void SetBlockControl(uint32_t value);
 
     bool IsActive() const;
-    bool SetDone();
+    void SetDone();
 
     Direction GetDirection() const;
     Step GetStep() const;

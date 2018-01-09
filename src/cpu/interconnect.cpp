@@ -44,6 +44,8 @@ uint16_t Interconnect::LoadHalfWord(uint32_t address)
     {
         return 0;
     }
+
+    return 0;
 }
 
 uint32_t Interconnect::LoadWord(uint32_t address)
@@ -137,7 +139,7 @@ void Interconnect::StoreWord(uint32_t address, uint32_t value)
     {
         switch (*offset)
         {
-            case 0: m_gpu.SetGP0(value);
+            case 0: m_gpu.SetGP0(value); break;
             default: assert(false && "Unhandled GPU write");
         }
     }

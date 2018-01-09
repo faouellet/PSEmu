@@ -17,6 +17,8 @@ uint32_t Channel::GetControl() const
     control |= static_cast<uint32_t>(m_enable) << 24;
     control |= static_cast<uint32_t>(m_trigger) << 28;
     control |= static_cast<uint32_t>(m_unknown) << 29;
+
+    return control;
 }
 
 void Channel::SetControl(uint32_t value)
@@ -85,7 +87,7 @@ bool Channel::IsActive() const
     return m_enable && trigger;
 }
 
-bool Channel::SetDone()
+void Channel::SetDone()
 {
     m_enable = false;
     m_trigger = false;
