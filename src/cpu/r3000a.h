@@ -128,10 +128,7 @@ private:
     void ExecuteSWC3(Instruction inst);
 
 private:
-    static constexpr const uint32_t PRIMARY_OPCODE_PATTERN = 0xFC000000;
-    static constexpr const uint32_t SECONDARY_OPCODE_PATTERN = 0x0000003F;
-
-    std::unordered_map<Opcode, void (R3000A::*)(Instruction)> m_opTable;
+    std::unordered_map<const Opcode, void (R3000A::*)(Instruction)> m_opTable;
     std::array<uint32_t, 32> m_registers;  /**< CPU registers */
     std::array<uint32_t, 32> m_outputRegisters;  /**< CPU registers */
     uint32_t m_pc;                         /**< Program counter. Points to the next instruction */

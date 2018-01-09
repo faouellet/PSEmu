@@ -45,20 +45,19 @@ void R3000A::Step()
     SetRegister(m_pendingLoad.first, m_pendingLoad.second);
     m_pendingLoad = {};
     
-    auto foundIt = std::find_if(m_opTable.cbegin(), m_opTable.cend(), 
-                                [&instToExec, this](const auto& opFtor)
-                                { 
-                                    uint32_t instOpcode = instToExec & PRIMARY_OPCODE_PATTERN;
-                                    if (instOpcode == 0)
-                                    {
-                                        instOpcode = instToExec & SECONDARY_OPCODE_PATTERN;
-                                    }
-                                    return opFtor.first == instOpcode;
-                                });
+    const uint32_t primaryOpcodePattern = 0xFC000000;
+    const uint32_t secondaryOpcodePattern = 0x0000003F;
+
+    uint32_t instOpcode = instToExec & primaryOpcodePattern;
+    if (instOpcode == 0)
+    {
+        instOpcode = instToExec & secondaryOpcodePattern;
+    }
+
+    auto foundIt = m_opTable.find(static_cast<Opcode>(instOpcode));
 
     if (foundIt != m_opTable.cend())
     {
-        // TODO: Error handling
         std::invoke(foundIt->second, this, instToExec);
 
         // Copy the output registers as input for the next instruction
