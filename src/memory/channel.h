@@ -32,6 +32,9 @@ enum class Sync
 class Channel
 {
 public:
+    Channel();
+
+public:
     uint32_t GetControl() const;
     void SetControl(uint32_t value);
 
@@ -56,12 +59,12 @@ private:
     Direction m_direction;
     Step m_step;
     Sync m_sync;
-    bool m_trigger; /**< Used to start the DMA transfer when 'm_sync' is 'MANUAL' */
-    bool m_chop; /**< If true the DMA *chops* the transfer and lets the CPU runs in the gaps */
+    bool m_trigger;        /**< Used to start the DMA transfer when 'm_sync' is 'MANUAL' */
+    bool m_chop;           /**< If true the DMA *chops* the transfer and lets the CPU runs in the gaps */
     uint8_t m_chopDMASize; /**< Chopping DMA window size (log2 number of words) */
     uint8_t m_chopCPUSize; /**< Chopping CPU window size (log2 number of words) */
-    uint8_t m_unknown; /**< Unknown 2 RW bits in configuration register */
-    uint32_t m_base;   /**< DMA start address */
+    uint8_t m_unknown;     /**< Unknown 2 RW bits in configuration register */
+    uint32_t m_base;       /**< DMA start address */
     uint16_t m_blockSize;  /**< Size of a block in words */
     uint16_t m_blockCount; /**< Block count. Only used when 'm_sync' is 'REQUEST' */
 };

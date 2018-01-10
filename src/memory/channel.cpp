@@ -4,6 +4,8 @@
 
 using namespace PSEmu;
 
+Channel::Channel() = default;
+
 uint32_t Channel::GetControl() const
 {
     uint32_t control{};

@@ -10,6 +10,9 @@ namespace PSEmu
 class CommandBuffer
 {
 public:
+    CommandBuffer();
+
+public:
     void Clear();
     void PushWord(uint32_t word);
     uint32_t operator[](uint32_t index) const;

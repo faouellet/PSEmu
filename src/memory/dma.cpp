@@ -20,7 +20,9 @@ uint32_t PortToIndex(Port port)
 
 }   // end anonymous namespace
 
-DMA::DMA() : m_control{ 0x7654321 }, m_IRQEnable{}, m_channelIRQEnable{}, m_channelIRQFlags{}, m_forceIRQ{} {}
+DMA::DMA() 
+    : m_control{ 0x7654321 }, m_IRQEnable{}, m_channelIRQEnable{}, 
+      m_channelIRQFlags{}, m_forceIRQ{}, m_dummy{}, m_channels{} { }
 
 uint32_t DMA::DMARegisterRead(uint32_t offset) const
 {

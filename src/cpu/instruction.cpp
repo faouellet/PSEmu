@@ -2,10 +2,6 @@
 
 using namespace PSEmu;
 
-// Giving a specific value to a default constructed instruction
-// will help with the debugging
-Instruction::Instruction() : m_intRep{ 0xDEADBEEF } { }
-
 Instruction::Instruction(uint32_t val) : m_intRep{ val } { }
 
 uint32_t Instruction::GetImm() const
@@ -20,8 +16,8 @@ uint32_t Instruction::GetImmJump() const
 
 uint32_t Instruction::GetImmSe() const 
 { 
-    // TODO: validate
-    int16_t res = GetImm();
+    // TODO: Explain
+    const int16_t res = GetImm();
     return res; 
 }
 

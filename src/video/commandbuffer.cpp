@@ -2,6 +2,11 @@
 
 using namespace PSEmu;
 
+CommandBuffer::CommandBuffer()
+{
+    Clear();
+}
+
 void CommandBuffer::Clear()
 {
     m_buffer = {};

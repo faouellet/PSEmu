@@ -28,7 +28,9 @@ public:
     operator uint32_t() const;
 
 private:
-    uint32_t m_intRep;
+    // Giving a specific value to a default constructed instruction
+    // will help with the debugging
+    uint32_t m_intRep = 0xDEADBEEF;
 };
 
 } // end namespace PSEmu

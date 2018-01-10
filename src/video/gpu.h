@@ -75,6 +75,9 @@ enum class DMADirection
 class GPU
 {
 public:
+    GPU();
+
+public:
     uint32_t GetStatus() const;
     void SetGP0(uint32_t value);
     void SetGP1(uint32_t value);

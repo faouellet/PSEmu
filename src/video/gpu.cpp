@@ -4,6 +4,11 @@
 
 using namespace PSEmu;
 
+GPU::GPU() : m_GP0Command{}, m_GP0CommandRemaining{}
+{
+    Reset();
+}
+
 uint32_t GPU::GetStatus() const
 {
     uint32_t status = 0;
