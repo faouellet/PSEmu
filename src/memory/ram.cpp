@@ -2,10 +2,12 @@
 
 #include "memorymap.h"
 
+#include <cassert>
+
 using namespace PSEmu;
 
 // RAM contains garbage by default
-RAM::RAM() : m_data(0xCA, RAM_SIZE) { }
+RAM::RAM() : m_data(RAM_SIZE, 0xCA) { }
 
 uint8_t RAM::LoadByte(uint32_t offset) const
 {
@@ -48,6 +50,8 @@ void RAM::StoreHalfWord(uint32_t offset, uint16_t value)
 
 void RAM::StoreWord(uint32_t offset, uint32_t value)
 {
+    assert(offset < m_data.size());
+
     const uint8_t byte0 = value;
     const uint8_t byte1 = value >> 8;
     const uint8_t byte2 = value >> 16;
