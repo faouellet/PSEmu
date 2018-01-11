@@ -35,7 +35,7 @@ void R3000A::Step()
     }
 
     // Fetch instruction at PC
-    const Instruction instToExec = LoadWord(m_pc);
+    const Instruction instToExec = m_interconnect.LoadWord(m_pc);
 
     // Increment next PC to point to the next instruction
     m_pc = m_nextPC;
@@ -45,13 +45,23 @@ void R3000A::Step()
     SetRegister(m_pendingLoad.first, m_pendingLoad.second);
     m_pendingLoad = {};
     
+    const uint32_t coprocessorBit = 0x40000000;
     const uint32_t primaryOpcodePattern = 0xFC000000;
     const uint32_t secondaryOpcodePattern = 0x0000003F;
 
-    uint32_t instOpcode = instToExec & primaryOpcodePattern;
+    uint32_t instOpcode = instToExec & coprocessorBit;
     if (instOpcode == 0)
     {
-        instOpcode = instToExec & secondaryOpcodePattern;
+        instOpcode = instToExec & primaryOpcodePattern;
+        
+        if (instOpcode == 0)
+        {
+            instOpcode = instToExec & secondaryOpcodePattern;
+        }
+    }
+    else
+    {
+        instOpcode = instToExec & 0x7FF00000;
     }
 
     auto foundIt = m_opTable.find(static_cast<Opcode>(instOpcode));

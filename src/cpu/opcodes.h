@@ -24,9 +24,6 @@ namespace PSEmu
         ORI     = 0x34000000,
         XORI    = 0x38000000,
         LUI     = 0x3C000000,
-        COP1    = 0x44000000,
-        COP2    = 0x48000000,
-        COP3    = 0x4C000000,
         LB      = 0x80000000,
         LH      = 0x84000000,
         LWL     = 0x88000000,
@@ -84,10 +81,13 @@ namespace PSEmu
         BLTZAL  = 0x04100000,
         BGEZAL  = 0x04110000,
 
-        // COP0
+        // Coprocessor
         MTC0    = 0x40800000,
         MFC0    = 0x40000000,
         RFE     = 0x42000010,
+        COP1    = 0x44000000,
+        COP2    = 0x48000000,
+        COP3    = 0x4C000000,
     };
 }   // end namespace PSEmu
 
