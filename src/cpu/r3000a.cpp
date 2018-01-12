@@ -170,6 +170,7 @@ void R3000A::InitOpTable()
     m_opTable[SWC3]     = &R3000A::ExecuteSWC3;
 }
 
+// TODO: Load* should probably return an optional value since it'll be ignored when the cache is isolated
 uint8_t R3000A::LoadByte(uint32_t address)
 {
     if ((m_sr & 0x10000) != 0)
@@ -410,7 +411,7 @@ void R3000A::ExecuteADDU(Instruction inst)
 void R3000A::ExecuteSH(Instruction inst)
 {
     const uint32_t address = m_registers[inst.GetRs()] + inst.GetImmSe();
-    const uint16_t value = m_registers[inst.GetRs()];
+    const uint16_t value = m_registers[inst.GetRt()];
     StoreHalfWord(address, value);
 }
 
@@ -430,7 +431,7 @@ void R3000A::ExecuteANDI(Instruction inst)
 void R3000A::ExecuteSB(Instruction inst)
 {
     const uint32_t address = m_registers[inst.GetRs()] + inst.GetImmSe();
-    const uint8_t value = m_registers[inst.GetRs()];
+    const uint8_t value = m_registers[inst.GetRt()];
     StoreByte(address, value);
 }
 
@@ -443,6 +444,7 @@ void R3000A::ExecuteJR(Instruction inst)
 void R3000A::ExecuteLB(Instruction inst)
 {
     const uint32_t addr = m_registers[inst.GetRs()] + inst.GetImmSe();
+    // Converting to int8_t to force sign extension
     const int8_t value = LoadByte(addr);
 
     m_pendingLoad = {{inst.GetRt()}, value};
@@ -697,6 +699,7 @@ void R3000A::ExecuteSLLV(Instruction inst)
 void R3000A::ExecuteLH(Instruction inst)
 {
     const uint32_t addr = m_registers[inst.GetRs()] + inst.GetImmSe();
+    // Converting to int16_t to force sign extension
     const int16_t value = LoadHalfWord(addr);
 
     m_pendingLoad = {{inst.GetRt()}, value};
