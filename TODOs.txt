@@ -1,3 +1,4 @@
 - Uniformize comments
 - Add CI
-- Add Qt GUI
+- Write README.md
+- Clean up CMakeLists.txt files
