@@ -19,10 +19,19 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -Werror")
 
 # OpenGL
 find_package(OpenGL REQUIRED)
+include_directories(${OPENGL_INCLUDE_DIR})
+
+# GLFW
+find_package(glfw3 REQUIRED)
 
 # ImGui
-set(IMGUI_DIR "../3rd party/imgui")
+set(IMGUI_DIR "3rd party/imgui")
 include_directories(${IMGUI_DIR})
+
+# glad
+set(GLAD_DIR "3rd party/glad")
+add_library("glad" "${GLAD_DIR}/src/glad.c")
+target_include_directories("glad" PRIVATE "${GLAD_DIR}/include")
 
 add_subdirectory(src)
 add_subdirectory(test)
@@ -30,4 +39,5 @@ add_subdirectory(test)
 set(SOURCE main.cpp)
 
 add_executable(PSEmu ${SOURCE} ${IMGUI_DIR}/imgui.cpp ${IMGUI_DIR}/imgui_draw.cpp ${IMGUI_DIR}/imgui_demo.cpp)
-target_link_libraries(PSEmu emu)
+target_include_directories(PSEmu PRIVATE "${GLAD_DIR}/include")
+target_link_libraries(PSEmu glad ${CMAKE_DL_LIBS} emu ${OPENGL_gl_LIBRARY} glfw)
