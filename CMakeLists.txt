@@ -17,6 +17,9 @@ endif()
 # We want to catch problems as soon as possible
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -Werror")
 
+# OpenGL
+find_package(OpenGL REQUIRED)
+
 # ImGui
 set(IMGUI_DIR "../3rd party/imgui")
 include_directories(${IMGUI_DIR})
