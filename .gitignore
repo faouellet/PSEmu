@@ -2,3 +2,4 @@
 build/
 *.zip
 *.BIN
+imgui.ini
