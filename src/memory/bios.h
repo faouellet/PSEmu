@@ -27,6 +27,8 @@ public:
     uint8_t  LoadByte(uint32_t offset) const;
     uint32_t LoadWord(uint32_t offset) const;
 
+    std::vector<uint8_t>& GetData() { return m_data; }
+
 private:
     std::vector<uint8_t> m_data;
 };
