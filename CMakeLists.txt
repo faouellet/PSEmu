@@ -36,7 +36,7 @@ target_include_directories("glad" PRIVATE "${GLAD_DIR}/include")
 add_subdirectory(src)
 add_subdirectory(test)
 
-set(SOURCE main.cpp)
+set(SOURCE main.cpp imgui_impl_glfw_gl3.cpp)
 
 add_executable(PSEmu ${SOURCE} ${IMGUI_DIR}/imgui.cpp ${IMGUI_DIR}/imgui_draw.cpp ${IMGUI_DIR}/imgui_demo.cpp)
 target_include_directories(PSEmu PRIVATE "${GLAD_DIR}/include")
