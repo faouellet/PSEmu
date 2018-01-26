@@ -2,12 +2,7 @@
 #include "src/memory/bios.h"
 
 // TODO: These includes below are atrocious
-#include "3rd party/imgui/imgui.h"
-#include "imgui_impl_glfw_gl3.h"
 #include "3rd party/glad/include/glad/glad.h"
-
-// TODO: Need custom features
-#include "memorydlg.h"
 
 #include <GLFW/glfw3.h>
 
@@ -41,38 +36,20 @@ int main()
         return -1;
     }
 
-    // Setup ImGui binding
-    ImGui_ImplGlfwGL3_Init(window, true);
-
-    // Setup style
-    ImGui::StyleColorsClassic();
-
-    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-
-    MemoryEditor mem_edit_1;
-    BIOS bios;
-    bios.Init("SCPH1001.BIN");
-
     // Main loop
     while (!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
-        ImGui_ImplGlfwGL3_NewFrame();
-
-        mem_edit_1.DrawWindow("Memory Editor", bios.GetData().data(), bios.GetData().size(), 0x0000);
 
         // Rendering
         int display_w, display_h;
         glfwGetFramebufferSize(window, &display_w, &display_h);
         glViewport(0, 0, display_w, display_h);
-        glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
+        glClearColor(0.45f, 0.55f, 0.60f, 1.00f);
         glClear(GL_COLOR_BUFFER_BIT);
-        ImGui::Render();
         glfwSwapBuffers(window);
     }
 
-    // Cleanup
-    ImGui_ImplGlfwGL3_Shutdown();
     glfwTerminate();
 
     return 0;
