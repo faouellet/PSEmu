@@ -24,10 +24,6 @@ include_directories(${OPENGL_INCLUDE_DIR})
 # GLFW
 find_package(glfw3 REQUIRED)
 
-# ImGui
-set(IMGUI_DIR "3rd party/imgui")
-include_directories(${IMGUI_DIR})
-
 # glad
 set(GLAD_DIR "3rd party/glad")
 add_library("glad" "${GLAD_DIR}/src/glad.c")
@@ -36,8 +32,8 @@ target_include_directories("glad" PRIVATE "${GLAD_DIR}/include")
 add_subdirectory(src)
 add_subdirectory(test)
 
-set(SOURCE main.cpp imgui_impl_glfw_gl3.cpp memorydlg.cpp)
+set(SOURCE main.cpp)
 
-add_executable(PSEmu ${SOURCE} ${IMGUI_DIR}/imgui.cpp ${IMGUI_DIR}/imgui_draw.cpp ${IMGUI_DIR}/imgui_demo.cpp)
+add_executable(PSEmu ${SOURCE})
 target_include_directories(PSEmu PRIVATE "${GLAD_DIR}/include")
 target_link_libraries(PSEmu glad ${CMAKE_DL_LIBS} emu ${OPENGL_gl_LIBRARY} glfw)
