@@ -1,5 +1,5 @@
-#include "src/cpu/r3000a.h"
-#include "src/memory/bios.h"
+#include "src/emulator/cpu/r3000a.h"
+#include "src/emulator/memory/bios.h"
 
 // TODO: These includes below are atrocious
 #include "3rd party/glad/include/glad/glad.h"

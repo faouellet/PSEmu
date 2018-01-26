@@ -40,6 +40,9 @@ public:
     void Step();
     void Reset();
 
+public:
+    uint32_t GetPC() const;
+
 private:
     void InitOpTable();
     uint8_t LoadByte(uint32_t address);

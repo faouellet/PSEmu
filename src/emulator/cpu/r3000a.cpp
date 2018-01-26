@@ -19,6 +19,9 @@ R3000A::R3000A(Interconnect&& interconnect)
 
 void R3000A::Step()
 {
+    // Debugger entry point: used for code breakpoints and stepping
+    
+
     // If the last instruction was a branch then we're in the delay slot
     m_isInDelaySlot = m_isBranching;
     m_isBranching = false;
@@ -91,6 +94,11 @@ void R3000A::Reset()
     m_lo = {};
     m_isBranching = false;
     m_isInDelaySlot = false;
+}
+
+uint32_t R3000A::GetPC() const
+{
+    return m_pc;
 }
 
 void R3000A::InitOpTable()

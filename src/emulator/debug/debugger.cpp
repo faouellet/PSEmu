@@ -1,5 +1,8 @@
 #include "debugger.h"
 
+#include "../cpu/r3000a.h"
+
+
 #include <algorithm>
 
 using namespace PSEmu;
@@ -22,4 +25,18 @@ void Debugger::DeleteBreakpoint(uint32_t address)
     {
         m_breakpoints.erase(foundIt);
     }
+}
+
+void Debugger::OnPCChange(const R3000A& cpu) const
+{
+    auto foundIt = std::find(m_breakpoints.cbegin(), m_breakpoints.cend(), cpu.GetPC());
+    if(foundIt != m_breakpoints.cend())
+    {
+        Debug(cpu);
+    }
+}
+
+void Debugger::Debug(const R3000A&) const
+{
+
 }
