@@ -27,6 +27,8 @@ void Debugger::DeleteBreakpoint(uint32_t address)
     }
 }
 
+// Called by the CPU when it's about to execute a new instruction. This function
+// is called before *all* CPU instructions so it needs to be as fast as possible.
 void Debugger::OnPCChange(const R3000A& cpu) const
 {
     auto foundIt = std::find(m_breakpoints.cbegin(), m_breakpoints.cend(), cpu.GetPC());
