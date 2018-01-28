@@ -1,6 +1,7 @@
 #ifndef R3000A_H
 #define R3000A_H
 
+#include "../debug/debugger.h"
 #include "instruction.h"
 #include "interconnect.h"
 #include "opcodes.h"
@@ -27,7 +28,7 @@ private:
     };
 
 public:
-    R3000A(Interconnect&& interconnect);
+    R3000A(Interconnect interconnect, Debugger debugger);
 
     // It should not be possible to copy or move this class
     R3000A(const R3000A&) = delete;
@@ -153,6 +154,8 @@ private:
     bool m_isBranching;     /**< Set by the current instruction if a branch occured and the next instruction
                                  will be in the delay slot */
     bool m_isInDelaySlot;   /**< Set if the current instruction executes in the delay slot */
+
+    Debugger m_debugger;
 };
 
 }   // end namespace PSEmu
