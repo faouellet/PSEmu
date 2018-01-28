@@ -81,6 +81,7 @@ public:
     uint32_t GetStatus() const;
     void SetGP0(uint32_t value);
     void SetGP1(uint32_t value);
+    uint32_t GetRead() const;
 
 private:
     void SetGP0DrawMode(uint32_t value);
@@ -214,7 +215,8 @@ private:
     // Remaining words in the current GP0 command
     uint32_t m_GP0CommandRemaining;
 
-    
+    // Pointer to the method implementing the current GP0 command
+    std::function<>
 };
 
 }   // end namespace PSEmu

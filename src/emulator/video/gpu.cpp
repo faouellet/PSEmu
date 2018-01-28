@@ -68,17 +68,35 @@ uint32_t GPU::GetStatus() const
 
 void GPU::SetGP0(uint32_t value)
 {
-    const uint32_t opcode = ((value >> 24) & 0xFF);
-
-    switch (opcode)
+    if(m_GP0CommandRemaining == 0)
     {
-        case 0x00:  // NOP
-            break;
-        case 0xE1:  // Draw mode setting
-            SetGP0DrawMode(value);
-            break;
-        default:
-            assert(false && "Unhandled GP0 command");
+        // We start a new command
+        const uint32_t opcode = ((value >> 24) & 0xFF);
+
+        uint8_t len = 0;
+        switch (opcode)
+        {
+            case 0x00:  // NOP
+                len = 1;
+                break;
+            case 0xE1:  // Draw mode setting
+                SetGP0DrawMode(value);
+                break;
+            default:
+                assert(false && "Unhandled GP0 command");
+        }
+
+        m_GP0CommandRemaining = len;
+        m_GP0Command.Clear();
+    }
+
+    m_GP0Command.PushWord(value);
+    m_GP0CommandRemaining -= 1;
+
+    if(m_GP0CommandRemaining == 0)
+    {
+        // We have all the parameters, we can run the command
+        
     }
 }
 
@@ -93,6 +111,13 @@ void GPU::SetGP1(uint32_t value)
         default:
             assert(false && "Unhandled GP0 command");
     }
+}
+
+// Retrieve value of the "read" register
+uint32_t GPU::GetRead() const
+{
+    // TODO: Implement it
+    return 0;
 }
 
 void GPU::SetGP0DrawMode(uint32_t value)
@@ -117,7 +142,6 @@ void GPU::SetGP0DrawMode(uint32_t value)
     m_disableTexture = ((value >> 11) & 1) != 0;
     m_rectangleTextureFlipX = ((value >> 12) & 1) != 0;
     m_rectangleTextureFlipY = ((value >> 13) & 1) != 0;
-    
 }
 
 void GPU::Reset()
