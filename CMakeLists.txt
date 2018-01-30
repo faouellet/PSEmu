@@ -18,16 +18,16 @@ endif()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -Werror")
 
 # OpenGL
-find_package(OpenGL REQUIRED)
-include_directories(${OPENGL_INCLUDE_DIR})
+#find_package(OpenGL REQUIRED)
+#include_directories(${OPENGL_INCLUDE_DIR})
 
 # GLFW
-find_package(glfw3 REQUIRED)
+#find_package(glfw3 REQUIRED)
 
 # glad
-set(GLAD_DIR "3rd party/glad")
-add_library("glad" "${GLAD_DIR}/src/glad.c")
-target_include_directories("glad" PRIVATE "${GLAD_DIR}/include")
+#set(GLAD_DIR "3rd party/glad")
+#add_library("glad" "${GLAD_DIR}/src/glad.c")
+#target_include_directories("glad" PRIVATE "${GLAD_DIR}/include")
 
 add_subdirectory(src)
 add_subdirectory(test)
@@ -35,5 +35,5 @@ add_subdirectory(test)
 set(SOURCE main.cpp)
 
 add_executable(PSEmu ${SOURCE})
-target_include_directories(PSEmu PRIVATE "${GLAD_DIR}/include")
-target_link_libraries(PSEmu glad ${CMAKE_DL_LIBS} emu ${OPENGL_gl_LIBRARY} glfw)
+#target_include_directories(PSEmu PRIVATE "${GLAD_DIR}/include")
+target_link_libraries(PSEmu emu)
