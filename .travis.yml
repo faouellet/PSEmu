@@ -11,6 +11,16 @@ cache:
   directories:
   - $HOME/deps
 
+before_install:
+  # C++17
+  - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+  - sudo apt-get update -qq
+
+install: 
+  # Install a C++17 compliant compiler and and make it the preferred compiler
+  - sudo apt-get install -qq g++-7
+  - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-7 90
+
 matrix:
   include:
     - os: linux
