@@ -1,0 +1,30 @@
+language: cpp
+
+branches:
+  only:
+  - master
+
+sudo: false
+dist: trusty
+
+cache:
+  directories:
+  - $HOME/deps
+
+matrix:
+  include:
+    - os: linux
+    - os: osx
+
+script: 
+  - mkdir build
+  - cd build
+  - cmake ..
+  - make
+     
+notifications:
+  recipients:
+  - faouellet@gmail.com
+  email:
+    on_success: change
+    on_failure: always
