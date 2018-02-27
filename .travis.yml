@@ -11,25 +11,32 @@ cache:
   directories:
   - $HOME/deps
 
-before_install:
-  # C++17
-  - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-  - sudo apt-get update -qq
-
-install: 
-  # Install a C++17 compliant compiler and and make it the preferred compiler
-  - sudo apt-get install -qq g++-7
-  - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-7 90
-
 matrix:
   include:
     - os: linux
-    - os: osx
+      compiler: gcc
+      addons:
+        apt:
+          sources:
+          - ubuntu-toolchain-r-test
+          packages:
+          - g++-7
+      env: COMPILER=g++-7
+
+    - os: linux
+      compiler: clang
+      addons:
+        apt:
+          sources:
+          - llvm-toolchain-trusty-5.0
+          packages:
+          - clang-5.0
+      env: COMPILER=clangg++-5
 
 script: 
   - mkdir build
   - cd build
-  - cmake ..
+  - cmake CXX=$COMPILER ..
   - make
      
 notifications:
