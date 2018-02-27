@@ -28,10 +28,10 @@ matrix:
       addons:
         apt:
           sources:
-          - llvm-toolchain-trusty-5.0
+          - llvm-toolchain-trusty-6.0
           packages:
           - clang-5.0
-      env: COMPILER=clang++-5.0
+      env: COMPILER=clang++-6.0
 
 script: 
   - mkdir build
