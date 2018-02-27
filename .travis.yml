@@ -31,12 +31,12 @@ matrix:
           - llvm-toolchain-trusty-5.0
           packages:
           - clang-5.0
-      env: COMPILER=clangg++-5
+      env: COMPILER=clang++-5
 
 script: 
   - mkdir build
   - cd build
-  - cmake CXX=$COMPILER ..
+  - cmake -DCMAKE_CXX_COMPILER=$COMPILER ..
   - make
      
 notifications:
