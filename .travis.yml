@@ -9,7 +9,7 @@ dist: trusty
 
 cache:
   directories:
-  - $HOME/deps
+  - ${TRAVIS_BUILD_DIR}/deps
 
 matrix:
   include:
@@ -23,15 +23,15 @@ matrix:
           - g++-7
       env: COMPILER=g++-7
 
-    - os: linux
-      compiler: clang
-      addons:
-        apt:
-          sources:
-          - llvm-toolchain-trusty-6.0
-          packages:
-          - clang-5.0
-      env: COMPILER=clang++-6.0
+    #- os: linux
+    #  compiler: clang
+    #  addons:
+    #    apt:
+    #      sources:
+    #      - llvm-toolchain-trusty-5.0
+    #      packages:
+    #      - clang-5.0
+    #  env: COMPILER=clang++-5.0
 
 script: 
   - mkdir build
