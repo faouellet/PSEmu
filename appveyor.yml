@@ -10,12 +10,16 @@ branches:
 
 image: Visual Studio 2017
 
-build:
-  verbosity: minimal
-
 build_script:
 - cmd: >-
     mkdir cmake-build
+
     cd cmake-build
+
     cmake ..
+
     cmake --build . --config Release
+
+test: off
+
+deploy: off

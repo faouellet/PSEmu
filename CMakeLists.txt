@@ -4,18 +4,20 @@ cmake_minimum_required(VERSION 3.5)
 
 project(PSEmu)
 
-# Useful for getting VS Code's Intellisense to work 
+# Useful for getting code completion to work in multiple IDEs
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-CHECK_CXX_COMPILER_FLAG("-std=c++1z" COMPILER_SUPPORTS_CXX1Z)
-if(COMPILER_SUPPORTS_CXX1Z)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1z")
-else()
-    message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++17 support. Please use a different C++ compiler.")
-endif()
+if(not MSVC)
+    CHECK_CXX_COMPILER_FLAG("-std=c++1z" COMPILER_SUPPORTS_CXX1Z)
+    if(COMPILER_SUPPORTS_CXX1Z)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1z")
+    else()
+        message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++17 support. Please use a different C++ compiler.")
+    endif()
 
-# We want to catch problems as soon as possible
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -Werror")
+    # We want to catch problems as soon as possible
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -Werror")
+endif()
 
 # OpenGL
 #find_package(OpenGL REQUIRED)
