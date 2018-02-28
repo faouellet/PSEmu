@@ -1,0 +1,14 @@
+version: 0.0.{build}
+
+pull_requests:
+  do_not_increment_build_number: true
+
+branches:
+  only:
+  - master
+  - travis
+
+image: Visual Studio 2017
+
+build:
+  verbosity: minimal
