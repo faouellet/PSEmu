@@ -16,7 +16,7 @@ build_script:
 
     cd cmake-build
 
-    cmake ..
+    cmake .. -DCMAKE_CXX_FLAGS="/std:c++latest"
 
     cmake --build . --config Release
 
