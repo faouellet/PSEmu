@@ -17,4 +17,5 @@ build_script:
 - cmd: >-
     mkdir cmake-build
     cd cmake-build
+    cmake ..
     cmake --build . --config Release
