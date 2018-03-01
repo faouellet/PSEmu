@@ -2,9 +2,9 @@
 #include "src/emulator/memory/bios.h"
 
 // TODO: These includes below are atrocious
-#include "3rd party/glad/include/glad/glad.h"
+//#include "3rd party/glad/include/glad/glad.h"
 
-#include <GLFW/glfw3.h>
+//#include <GLFW/glfw3.h>
 
 #include <iostream>
 
