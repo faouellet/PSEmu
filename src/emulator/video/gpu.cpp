@@ -1,6 +1,7 @@
 #include "gpu.h"
 
 #include <cassert>
+#include <functional>
 
 using namespace PSEmu;
 
@@ -84,7 +85,7 @@ void GPU::SetGP0(uint32_t value)
                 m_GP0CommandMethod = &GPU::GP0DrawQuadMonoOpaque;
                 len = 5;
                 break;
-            case 0x28:
+            case 0x2C:
                 m_GP0CommandMethod = &GPU::GP0DrawQuadTextureBlendOpaque;
                 len = 9;
                 break;
@@ -101,27 +102,27 @@ void GPU::SetGP0(uint32_t value)
                 len = 3;
                 break;
             case 0xE1:
-                m_GP0CommandMethod = &GPU::SetGP0DrawMode;
+                m_GP0CommandMethod = &GPU::GP0SetDrawMode;
                 len = 1;
                 break;
             case 0xE2:
-                m_GP0CommandMethod = &GPU::SetGP0TextureWindow;
+                m_GP0CommandMethod = &GPU::GP0SetTextureWindow;
                 len = 1;
                 break;
             case 0xE3:
-                m_GP0CommandMethod = &GPU::SetGP0DrawingAreaTopLeft;
+                m_GP0CommandMethod = &GPU::GP0SetDrawingAreaTopLeft;
                 len = 1;
                 break;
             case 0xE4:
-                m_GP0CommandMethod = &GPU::SetGP0DrawingAreaBottomRight;
+                m_GP0CommandMethod = &GPU::GP0SetDrawingAreaBottomRight;
                 len = 1;
                 break;
             case 0xE5:
-                m_GP0CommandMethod = &GPU::SetGP0DrawingOffset;
+                m_GP0CommandMethod = &GPU::GP0SetDrawingOffset;
                 len = 1;
                 break;
             case 0xE6:
-                m_GP0CommandMethod = &GPU::SetGP0MaskBitSetting;
+                m_GP0CommandMethod = &GPU::GP0SetMaskBitSetting;
                 len = 1;
                 break;
             default:
@@ -141,7 +142,7 @@ void GPU::SetGP0(uint32_t value)
         if(m_GP0WordsRemaining == 0)
         {
             // We have all the parameters, we can run the command
-            m_GP0CommandMethod();
+            std::invoke(m_GP0CommandMethod, this);
         }
     }
     else    // GP0Mode::IMAGE_LOAD
@@ -149,7 +150,7 @@ void GPU::SetGP0(uint32_t value)
         if(m_GP0WordsRemaining == 0)
         {
             // Load done, switch back to command mode
-            m_GP0Mode = GP0Mode::COMMAND
+            m_GP0Mode = GP0Mode::COMMAND;
         }
     }
 }
@@ -174,8 +175,10 @@ uint32_t GPU::GetRead() const
     return 0;
 }
 
-void GPU::SetGP0DrawMode(uint32_t value)
+void GPU::GP0SetDrawMode()
 {
+    const uint32_t value = m_GP0Command[0];
+
     m_pageBaseX = (value & 0xF);
     m_pageBaseY = ((value >> 4) & 1);
     m_semiTransparency = ((value >> 5) & 3);
@@ -238,7 +241,7 @@ void GPU::Reset()
     m_GP0Mode = GP0Mode::COMMAND;
 }
 
-void GPU::SetGP1DisplayMode(uint32_t value)
+void GPU::GP1SetDisplayMode(uint32_t value)
 {
     const uint8_t hr1 = value & 3;
     const uint8_t hr2 = (value >> 6) & 1;
@@ -254,7 +257,7 @@ void GPU::SetGP1DisplayMode(uint32_t value)
     assert(((value & 0x80) == 0) && "Unsupported display mode");
 }
 
-void GPU::SetGP1DMADirection(uint32_t value)
+void GPU::GP1SetDMADirection(uint32_t value)
 {
     switch (value & 3)
     {
@@ -275,20 +278,26 @@ void GPU::SetGP1DMADirection(uint32_t value)
     }
 }
 
-void GPU::SetGP0DrawingAreaTopLeft(uint32_t value)
+void GPU::GP0SetDrawingAreaTopLeft()
 {
+    const uint32_t value = m_GP0Command[0];
+    
     m_drawingAreaTop = (value >> 10) & 0x3FF;
     m_drawingAreaLeft = value & 0x3FF;
 }
 
-void GPU::SetGP0DrawingAreaBottomRight(uint32_t value)
+void GPU::GP0SetDrawingAreaBottomRight()
 {
+    const uint32_t value = m_GP0Command[0];
+    
     m_drawingAreaBottom = (value >> 10) & 0x3FF;
     m_drawingAreaRight = value & 0x3FF;
 }
 
-void GPU::SetGP0DrawingOffset(uint32_t value)
+void GPU::GP0SetDrawingOffset()
 {
+    const uint32_t value = m_GP0Command[0];
+    
     const uint16_t x = value & 0x7FF;
     const uint16_t y = (value >> 11) & 0x7FF;
 
@@ -298,16 +307,20 @@ void GPU::SetGP0DrawingOffset(uint32_t value)
     m_drawingOffsetY = static_cast<int16_t>(y << 5) >> 5;
 }
 
-void GPU::SetGP0TextureWindow(uint32_t value)
+void GPU::GP0SetTextureWindow()
 {
+    const uint32_t value = m_GP0Command[0];
+    
     m_textureWindowMaskX = value & 0x1F;
     m_textureWindowMaskY = (value >> 5) & 0x1F;
     m_textureWindowOffsetX = (value >> 10) & 0x1F;
     m_textureWindowOffsetY = (value >> 15) & 0x1F;
 }
 
-void GPU::SetGP0MaskBitSetting(uint32_t value)
+void GPU::GP0SetMaskBitSetting()
 {
+    const uint32_t value = m_GP0Command[0];
+    
     m_forceSetMaskBit = (value & 1) != 0;
     m_preserveMaskedPixels = (value & 2) != 0;
 }
@@ -318,13 +331,13 @@ void GPU::GP1DisplayVRAMStart(uint32_t value)
     m_displayVRAMStartY = (value >> 10) & 0x1FF;
 }
 
-void GPU::GP1DisplayHorizontalRange(uint32_t value)
+void GPU::GP1SetDisplayHorizontalRange(uint32_t value)
 {
     m_displayHorizStart = value & 0xFFF;
     m_displayHorizEnd = (value >> 12) & 0xFFF;
 }
 
-void GPU::GP1DisplayVerticalRange(uint32_t value)
+void GPU::GP1SetDisplayVerticalRange(uint32_t value)
 {
     m_displayLineStart = value & 0x3FF;
     m_displayLineEnd = (value >> 10) & 0x3FF;
@@ -357,18 +370,18 @@ void GPU::GP0LoadImage()
     m_GP0Mode = GP0Mode::IMAGE_LOAD;
 }
 
-void GPU::SetGP1DisplayEnabled(uint32_t value)
+void GPU::GP1SetDisplayEnabled(uint32_t value)
 {
-    m_displayDisabled = value & 1 != 0;
+    m_displayDisabled = (value & 1) != 0;
 }
 
 void GPU::GP0StoreImage()
 {
     // Parameter 2 contains the image resolution
-    const uint32_t resolution = m_GP0Command[2];
+    //const uint32_t resolution = m_GP0Command[2];
 
-    const uint32_t width = resolution & 0xFFFF;
-    const uint32_t height = resolution >> 16;
+    //const uint32_t width = resolution & 0xFFFF;
+    //const uint32_t height = resolution >> 16;
 }
 
 void GPU::GP0DrawQuadShadedOpaque() { }

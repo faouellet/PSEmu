@@ -89,30 +89,35 @@ public:
     void SetGP1(uint32_t value);
     uint32_t GetRead() const;
 
-private:
-    void SetGP0DrawMode(uint32_t value);
-    void Reset();
-    uint32_t Read() const { return 0; }
-    void SetGP1DisplayMode(uint32_t value);
-    void SetGP1DMADirection(uint32_t value);
-    void SetGP0DrawingAreaTopLeft(uint32_t value);
-    void SetGP0DrawingAreaBottomRight(uint32_t value);
-    void SetGP0DrawingOffset(uint32_t value);
-    void SetGP0TextureWindow(uint32_t value);
-    void SetGP0MaskBitSetting(uint32_t value);
-    void SetGP1DisplayEnabled(uint32_t value);
-    void GP1DisplayVRAMStart(uint32_t value);
-    void GP1DisplayHorizontalRange(uint32_t value);
-    void GP1DisplayVerticalRange(uint32_t value);
-    void GP0NOP();
-    void GP0DrawQuadMonoOpaque();
+private:    // GP0 commands
     void GP0ClearCache();
-    void GP0LoadImage();
-    void GP0StoreImage();
+    void GP0DrawQuadMonoOpaque();
     void GP0DrawQuadShadedOpaque();
+    void GP0DrawQuadTextureBlendOpaque();
     void GP0DrawTriShadedOpaque();
+    void GP0SetDrawingAreaTopLeft();
+    void GP0SetDrawingAreaBottomRight();
+    void GP0SetDrawingOffset();
+    void GP0SetDrawMode();
+    void GP0LoadImage();   
+    void GP0SetMaskBitSetting();
+    void GP0NOP();
+    void GP0StoreImage();
+    void GP0SetTextureWindow();   
+
+private:    // GP1 commands
     void GP1AcknowledgeIRQ();
+    void GP1DisplayVRAMStart(uint32_t value);
     void GP1ResetCommandBuffer();
+    void GP1SetDisplayEnabled(uint32_t value);
+    void GP1SetDisplayMode(uint32_t value);
+    void GP1SetDMADirection(uint32_t value);
+    void GP1SetDisplayHorizontalRange(uint32_t value);
+    void GP1SetDisplayVerticalRange(uint32_t value);
+
+private:    // Utilities
+    uint32_t Read() const { return 0; }
+    void Reset();
 
 private:
     // Texture page base X coordinate (4 bits, 64 byte increment)
