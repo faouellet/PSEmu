@@ -4,7 +4,7 @@
 
 using namespace PSEmu;
 
-GPU::GPU() : m_GP0Command{}, m_GP0CommandRemaining{}
+GPU::GPU() : m_GP0Command{}, m_GP0WordsRemaining{}
 {
     Reset();
 }
@@ -68,7 +68,7 @@ uint32_t GPU::GetStatus() const
 
 void GPU::SetGP0(uint32_t value)
 {
-    if(m_GP0CommandRemaining == 0)
+    if(m_GP0WordsRemaining == 0)
     {
         // We start a new command
         const uint32_t opcode = ((value >> 24) & 0xFF);
@@ -76,27 +76,81 @@ void GPU::SetGP0(uint32_t value)
         uint8_t len = 0;
         switch (opcode)
         {
-            case 0x00:  // NOP
+            case 0x00:
+                m_GP0CommandMethod = &GPU::GP0NOP;
                 len = 1;
                 break;
-            case 0xE1:  // Draw mode setting
-                SetGP0DrawMode(value);
+            case 0x28:
+                m_GP0CommandMethod = &GPU::GP0DrawQuadMonoOpaque;
+                len = 5;
+                break;
+            case 0x28:
+                m_GP0CommandMethod = &GPU::GP0DrawQuadTextureBlendOpaque;
+                len = 9;
+                break;
+            case 0x30:
+                m_GP0CommandMethod = &GPU::GP0DrawTriShadedOpaque;
+                len = 6;
+                break;
+            case 0x38:
+                m_GP0CommandMethod = &GPU::GP0DrawQuadShadedOpaque;
+                len = 8;
+                break;
+            case 0xA0:
+                m_GP0CommandMethod = &GPU::GP0LoadImage;
+                len = 3;
+                break;
+            case 0xE1:
+                m_GP0CommandMethod = &GPU::SetGP0DrawMode;
+                len = 1;
+                break;
+            case 0xE2:
+                m_GP0CommandMethod = &GPU::SetGP0TextureWindow;
+                len = 1;
+                break;
+            case 0xE3:
+                m_GP0CommandMethod = &GPU::SetGP0DrawingAreaTopLeft;
+                len = 1;
+                break;
+            case 0xE4:
+                m_GP0CommandMethod = &GPU::SetGP0DrawingAreaBottomRight;
+                len = 1;
+                break;
+            case 0xE5:
+                m_GP0CommandMethod = &GPU::SetGP0DrawingOffset;
+                len = 1;
+                break;
+            case 0xE6:
+                m_GP0CommandMethod = &GPU::SetGP0MaskBitSetting;
+                len = 1;
                 break;
             default:
                 assert(false && "Unhandled GP0 command");
         }
 
-        m_GP0CommandRemaining = len;
+        m_GP0WordsRemaining = len;
         m_GP0Command.Clear();
     }
 
-    m_GP0Command.PushWord(value);
-    m_GP0CommandRemaining -= 1;
+    m_GP0WordsRemaining -= 1;
 
-    if(m_GP0CommandRemaining == 0)
+    if(m_GP0Mode == GP0Mode::COMMAND)
     {
-        // We have all the parameters, we can run the command
-        
+        m_GP0Command.PushWord(value);
+
+        if(m_GP0WordsRemaining == 0)
+        {
+            // We have all the parameters, we can run the command
+            m_GP0CommandMethod();
+        }
+    }
+    else    // GP0Mode::IMAGE_LOAD
+    {
+        if(m_GP0WordsRemaining == 0)
+        {
+            // Load done, switch back to command mode
+            m_GP0Mode = GP0Mode::COMMAND
+        }
     }
 }
 
@@ -181,6 +235,7 @@ void GPU::Reset()
     m_displayLineStart = 0;
     m_displayLineEnd = 0;
     m_displayDepth = DisplayDepth::D15BITS;
+    m_GP0Mode = GP0Mode::COMMAND;
 }
 
 void GPU::SetGP1DisplayMode(uint32_t value)
@@ -273,4 +328,63 @@ void GPU::GP1DisplayVerticalRange(uint32_t value)
 {
     m_displayLineStart = value & 0x3FF;
     m_displayLineEnd = (value >> 10) & 0x3FF;
+}
+
+void GPU::GP0NOP() { }
+
+void GPU::GP0DrawQuadMonoOpaque() { }
+
+void GPU::GP0LoadImage()
+{
+    // Parameter 2 contains the image resolution
+    const uint32_t resolution = m_GP0Command[2];
+
+    const uint32_t width = resolution & 0xFFFF;
+    const uint32_t height = resolution >> 16;
+
+    // Size of the image in 16bit pixels
+    uint32_t imageSize = width * height;
+
+    // If we have an odd number of pixels we must round it up
+    // since we transfer 32 bits at a time. There'll be
+    // 16 bits of padding in the last word.
+    imageSize = (imageSize + 1) & !1;
+
+    // Store number of words expected for this image
+    m_GP0WordsRemaining = imageSize / 2;
+
+    // Put the GP0 state machine in ImageLoad mode
+    m_GP0Mode = GP0Mode::IMAGE_LOAD;
+}
+
+void GPU::SetGP1DisplayEnabled(uint32_t value)
+{
+    m_displayDisabled = value & 1 != 0;
+}
+
+void GPU::GP0StoreImage()
+{
+    // Parameter 2 contains the image resolution
+    const uint32_t resolution = m_GP0Command[2];
+
+    const uint32_t width = resolution & 0xFFFF;
+    const uint32_t height = resolution >> 16;
+}
+
+void GPU::GP0DrawQuadShadedOpaque() { }
+
+void GPU::GP0DrawTriShadedOpaque() { }
+
+void GPU::GP0DrawQuadTextureBlendOpaque() { }
+
+void GPU::GP1AcknowledgeIRQ()
+{
+    m_interrupt = false;
+}
+
+void GPU::GP1ResetCommandBuffer()
+{
+    m_GP0Command.Clear();
+    m_GP0WordsRemaining = 0;
+    m_GP0Mode = GP0Mode::COMMAND;
 }

@@ -72,6 +72,12 @@ enum class DMADirection
     VRAM_TO_CPU
 };
 
+enum class GP0Mode
+{
+    COMMAND,
+    IMAGE_LOAD
+};
+
 class GPU
 {
 public:
@@ -94,9 +100,19 @@ private:
     void SetGP0DrawingOffset(uint32_t value);
     void SetGP0TextureWindow(uint32_t value);
     void SetGP0MaskBitSetting(uint32_t value);
+    void SetGP1DisplayEnabled(uint32_t value);
     void GP1DisplayVRAMStart(uint32_t value);
     void GP1DisplayHorizontalRange(uint32_t value);
     void GP1DisplayVerticalRange(uint32_t value);
+    void GP0NOP();
+    void GP0DrawQuadMonoOpaque();
+    void GP0ClearCache();
+    void GP0LoadImage();
+    void GP0StoreImage();
+    void GP0DrawQuadShadedOpaque();
+    void GP0DrawTriShadedOpaque();
+    void GP1AcknowledgeIRQ();
+    void GP1ResetCommandBuffer();
 
 private:
     // Texture page base X coordinate (4 bits, 64 byte increment)
@@ -213,10 +229,13 @@ private:
     CommandBuffer m_GP0Command;
 
     // Remaining words in the current GP0 command
-    uint32_t m_GP0CommandRemaining;
+    uint32_t m_GP0WordsRemaining;
 
     // Pointer to the method implementing the current GP0 command
-    std::function<>
+    void (GPU::*m_GP0CommandMethod)();
+
+    // Current mode of the GP0 register
+    GP0Mode m_GP0Mode;
 };
 
 }   // end namespace PSEmu
