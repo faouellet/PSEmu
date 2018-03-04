@@ -84,7 +84,7 @@ bool Channel::IsActive() const
 {
     // In manual sync mode, the CPU must set the *trigger* bit
     // to start the transfer
-    const bool trigger = m_sync == Sync::MANUAL ? m_trigger : true;
+    const bool trigger = (m_sync == Sync::MANUAL ? m_trigger : true);
 
     return m_enable && trigger;
 }
