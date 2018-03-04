@@ -12,7 +12,7 @@ namespace PSEmu
 class Interconnect
 {
 public:
-    explicit Interconnect(BIOS&& bios);
+    explicit Interconnect(BIOS bios);
 
 public:
     uint8_t  LoadByte(uint32_t offset);
@@ -26,8 +26,8 @@ public:
 private:
     BIOS m_bios;
     RAM m_ram;
-    DMA m_dma;
     GPU m_gpu;
+    DMA m_dma;
 };
 
 } // end namespace PSEmu

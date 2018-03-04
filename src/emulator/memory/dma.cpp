@@ -1,5 +1,8 @@
 #include "dma.h"
 
+#include "../video/gpu.h"
+#include "ram.h"
+
 #include <cassert>
 
 using namespace PSEmu;
@@ -20,11 +23,12 @@ uint32_t PortToIndex(Port port)
 
 }   // end anonymous namespace
 
-DMA::DMA() 
+DMA::DMA(GPU& gpu, RAM& ram) 
     : m_control{ 0x7654321 }, m_IRQEnable{}, m_channelIRQEnable{}, 
-      m_channelIRQFlags{}, m_forceIRQ{}, m_dummy{}, m_channels{} { }
+      m_channelIRQFlags{}, m_forceIRQ{}, m_dummy{}, m_channels{}, 
+      m_ram{ ram }, m_gpu{ gpu } { }
 
-uint32_t DMA::DMARegisterRead(uint32_t offset) const
+uint32_t DMA::RegisterRead(uint32_t offset) const
 {
     const uint32_t major = (offset & 0x70) >> 4;
     const uint32_t minor = offset & 0xF;
@@ -54,6 +58,7 @@ uint32_t DMA::DMARegisterRead(uint32_t offset) const
                         return value;
                 }
             }
+        // Common DMA registers
         case 7:
         {
             switch (minor)
@@ -73,7 +78,7 @@ uint32_t DMA::DMARegisterRead(uint32_t offset) const
     }
 }
 
-void DMA::DMARegisterWrite(uint32_t offset, uint32_t value)
+void DMA::RegisterWrite(uint32_t offset, uint32_t value)
 {
     const uint32_t major = (offset & 0x70) >> 4;
     const uint32_t minor = offset & 0xF;
@@ -104,6 +109,7 @@ void DMA::DMARegisterWrite(uint32_t offset, uint32_t value)
                 }
                 break;
             }
+        // Common DMA registers
         case 7:
         {
             switch (minor)
@@ -197,34 +203,37 @@ void DMA::DoMemoryBlockCopy(Port port)
     const int32_t increment = chan.GetStep() == Step::INCREMENT ? 4 : -4;
     uint32_t& address = chan.GetBase();
 
-    std::optional<uint32_t> remainingSize = chan.GetTransferSize();
-    if (remainingSize == std::nullopt)
+    std::optional<uint32_t> transferSize = chan.GetTransferSize();
+    if (transferSize == std::nullopt)
     {
         assert(false && "Couldn't figure out DMA block transfer size");
         return;
     }
 
+    uint32_t remainingSize = *transferSize;
+
     while (remainingSize > 0)
     {
-        //uint32_t curAddr = address & 0x1FFFFC;
+        uint32_t curAddr = address & 0x1FFFFC;
 
         if (chan.GetDirection() == Direction::FROM_RAM)
         {
-            assert(false && "Unhandled DMA direction");
-            return;
+            const uint32_t srcWord = m_ram.LoadWord(curAddr);
         }
-        else
+        else    // Direction::TO_RAM
         {
-            //uint32_t srcWord;
+            uint32_t srcWord;
             if (port == Port::OTC)
             {
                 if (remainingSize == 1)
                 {
-                    //srcWord = 0xFFFFFF;
+                    // Last entry contains the end of table marker
+                    srcWord = 0xFFFFFF;
                 }
                 else
                 {
-                    //srcWord = (address - 4) & 0x1FFFFF;
+                    // Pointer to the previous entry
+                    srcWord = (address - 4) & 0x1FFFFF;
                 }
             }
             else
@@ -233,11 +242,11 @@ void DMA::DoMemoryBlockCopy(Port port)
                 return;
             }
             
-            // TODO: Write to RAM
+            m_ram.StoreWord(curAddr, srcWord);
         }
 
         address += increment;
-        --(*remainingSize);
+        --remainingSize;
     }
 
     chan.SetDone();
@@ -247,7 +256,6 @@ void DMA::DoLinkedListCopy(Port port)
 {
     Channel& chan = GetChannel(port);
 
-    //const int32_t increment = chan.GetStep() == Step::INCREMENT ? 4 : -4;
     uint32_t& address = chan.GetBase();
 
     if (chan.GetDirection() == Direction::TO_RAM)
@@ -258,29 +266,33 @@ void DMA::DoLinkedListCopy(Port port)
 
     if (port != Port::GPU)
     {
-        assert(false && "Attempted linked list DMA on port");
+        assert(false && "Attempted linked list DMA on incorrect port");
         return;
     }
 
-    // In linked list mode, each entry starts with a
-    // *header* word. The high byte contains the number
-    // of words in the *packet* (not counting the header word)
-    uint32_t header = 0;   // TODO: Load from RAM
-    
-    while (header & 0x800000)
+    for(;;)
     {
-        uint32_t remainingSize = header >> 24;
+        // In linked list mode, each entry starts with a
+        // *header* word. The high byte contains the number
+        // of words in the *packet* (not counting the header word)
+        uint32_t header = m_ram.LoadWord(address);
 
-        while (remainingSize > 0)
+        while (header & 0x800000)
         {
-            address = (address + 4) & 0x1FFFFC;
-            // TODO: Load from RAM
-            //const uint32_t command = 0;
+            uint32_t remainingSize = header >> 24;
 
-            --remainingSize;
+            while (remainingSize > 0)
+            {
+                address = (address + 4) & 0x1FFFFC;
+                const uint32_t command = m_ram.LoadWord(address);
+
+                m_gpu.SetGP0(command);
+
+                --remainingSize;
+            }
+
+            address = header & 0x1FFFFC;
         }
-
-        address = header & 0x1FFFFC;
     }
 
     chan.SetDone();

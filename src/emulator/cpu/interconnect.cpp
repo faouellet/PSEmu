@@ -17,7 +17,7 @@ uint32_t GetPhysicalAddress(uint32_t virtAddr)
 
 }   // end anonymous namespace
 
-Interconnect::Interconnect(BIOS&& bios) : m_bios{ std::move(bios) }, m_ram{}, m_dma{}, m_gpu{} { }
+Interconnect::Interconnect(BIOS bios) : m_bios{ std::move(bios) }, m_ram{}, m_gpu{}, m_dma{ m_gpu, m_ram } { }
 
 uint8_t Interconnect::LoadByte(uint32_t address)
 {
@@ -66,7 +66,7 @@ uint32_t Interconnect::LoadWord(uint32_t address)
     }
     else if (auto offset = DMA_RANGE.Contains(physAddr))
     {
-        return m_dma.DMARegisterRead(address);
+        return m_dma.RegisterRead(address);
     }
     else if (auto offset = GPU_RANGE.Contains(physAddr))
     {
@@ -133,7 +133,7 @@ void Interconnect::StoreWord(uint32_t address, uint32_t value)
     }
     else if (auto offset = DMA_RANGE.Contains(physAddr))
     {
-        m_dma.DMARegisterWrite(address, value);
+        m_dma.RegisterWrite(address, value);
     }
     else if (auto offset = GPU_RANGE.Contains(physAddr))
     {

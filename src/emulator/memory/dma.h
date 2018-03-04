@@ -9,6 +9,9 @@
 namespace PSEmu
 {
 
+class GPU;
+class RAM;
+
 enum class Port
 {
     // Macroblock decoder input
@@ -30,7 +33,7 @@ enum class Port
 class DMA
 {
 public:
-    DMA();
+    DMA(GPU& gpu, RAM& ram);
 
     // It should not be possible to copy an instance of this class
     DMA(const DMA&) = delete;
@@ -41,8 +44,8 @@ public:
     DMA& operator=(DMA&&) = default;
 
 public:
-    uint32_t DMARegisterRead(uint32_t offset) const;
-    void DMARegisterWrite(uint32_t offset, uint32_t value);
+    uint32_t RegisterRead(uint32_t offset) const;
+    void RegisterWrite(uint32_t offset, uint32_t value);
 
     uint32_t GetControl() const;
     void SetControl(uint32_t value);
@@ -81,6 +84,11 @@ private:
 
     // The 7 channel instances
     std::array<Channel, 7> m_channels; 
+
+    RAM& m_ram;
+
+    // 
+    GPU& m_gpu;
 };
 
 }   // end namespace PSEmu
