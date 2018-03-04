@@ -286,6 +286,8 @@ void DMA::DoLinkedListCopy(Port port)
                 address = (address + 4) & 0x1FFFFC;
                 const uint32_t command = m_ram.LoadWord(address);
 
+                m_gpu.SetGP0(command);
+
                 --remainingSize;
             }
 
