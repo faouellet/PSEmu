@@ -9,9 +9,10 @@
 
 using namespace PSEmu;
 
-R3000A::R3000A(Interconnect&& interconnect) 
+R3000A::R3000A(Interconnect interconnect, Debugger debugger) 
     : m_interconnect{ std::move(interconnect) }, 
-      m_nextInst{ 0x0 }
+      m_nextInst{ 0x0 },
+      m_debugger{ std::move(debugger) }
 {
     Reset();
     InitOpTable();
@@ -19,15 +20,15 @@ R3000A::R3000A(Interconnect&& interconnect)
 
 void R3000A::Step()
 {
-    // Debugger entry point: used for code breakpoints and stepping
-    
-
     // If the last instruction was a branch then we're in the delay slot
     m_isInDelaySlot = m_isBranching;
     m_isBranching = false;
 
     // Save the address of the current instruction to save in EPC in case of an exception
     m_currentPC = m_pc;
+
+    // Debugger entry point: used for code breakpoints and stepping
+    m_debugger.OnPCChange(*this);
 
     if (m_currentPC % 4 != 0)
     {
