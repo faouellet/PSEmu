@@ -218,7 +218,7 @@ void DMA::DoMemoryBlockCopy(Port port)
 
         if (chan.GetDirection() == Direction::FROM_RAM)
         {
-            const uint32_t srcWord = m_ram.LoadWord(curAddr);
+            //const uint32_t srcWord = m_ram.LoadWord(curAddr);
         }
         else    // Direction::TO_RAM
         {
