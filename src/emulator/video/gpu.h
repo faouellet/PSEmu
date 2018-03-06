@@ -2,6 +2,7 @@
 #define GPU_H
 
 #include "commandbuffer.h"
+#include "renderer.h"
 
 #include <cstdint>
 
@@ -241,6 +242,8 @@ private:
 
     // Current mode of the GP0 register
     GP0Mode m_GP0Mode;
+
+    Renderer m_renderer;
 };
 
 }   // end namespace PSEmu
