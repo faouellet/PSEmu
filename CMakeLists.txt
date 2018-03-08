@@ -36,4 +36,5 @@ set(SOURCE main.cpp)
 
 add_executable(PSEmu ${SOURCE})
 target_include_directories(PSEmu PRIVATE "${GLAD_DIR}/include")
-target_link_libraries(PSEmu emu)
+
+target_link_libraries(PSEmu glad ${CMAKE_DL_LIBS} emu ${OPENGL_gl_LIBRARY} glfw)
