@@ -12,7 +12,13 @@ namespace PSEmu
 class Interconnect
 {
 public:
-    explicit Interconnect(BIOS bios);
+    explicit Interconnect(BIOS bios, GPU gpu);
+
+    Interconnect(const Interconnect&) = delete;
+    Interconnect& operator=(const Interconnect&) = delete;
+
+    Interconnect(Interconnect&&) = default;
+    Interconnect& operator=(Interconnect&&) = default;
 
 public:
     uint8_t  LoadByte(uint32_t offset);

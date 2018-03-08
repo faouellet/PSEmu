@@ -82,7 +82,13 @@ enum class GP0Mode
 class GPU
 {
 public:
-    GPU();
+    GPU(Renderer renderer);
+
+    GPU(const GPU&) = delete;
+    GPU& operator=(const GPU&) = delete;
+
+    GPU(GPU&&) = default;
+    GPU& operator=(GPU&&) = default;
 
 public:
     uint32_t GetStatus() const;

@@ -5,7 +5,7 @@
 
 using namespace PSEmu;
 
-GPU::GPU() : m_GP0Command{}, m_GP0WordsRemaining{}
+GPU::GPU(Renderer renderer) : m_GP0Command{}, m_GP0WordsRemaining{}, m_renderer{std::move(renderer)}
 {
     Reset();
 }

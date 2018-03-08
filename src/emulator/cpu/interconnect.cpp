@@ -17,7 +17,11 @@ uint32_t GetPhysicalAddress(uint32_t virtAddr)
 
 }   // end anonymous namespace
 
-Interconnect::Interconnect(BIOS bios) : m_bios{ std::move(bios) }, m_ram{}, m_gpu{}, m_dma{ m_gpu, m_ram } { }
+Interconnect::Interconnect(BIOS bios, GPU gpu) 
+    : m_bios{ std::move(bios) }, 
+      m_ram{}, 
+      m_gpu{ std::move(gpu) }, 
+      m_dma{ m_gpu, m_ram } { }
 
 uint8_t Interconnect::LoadByte(uint32_t address)
 {
