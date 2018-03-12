@@ -27,22 +27,22 @@ Opcode Instruction::GetOp() const
     const uint32_t primaryOpcodePattern = 0xFC000000;
     const uint32_t secondaryOpcodePattern = 0x0000003F;
 
-    uint32_t instOpcode = instToExec & coprocessorBit;
+    uint32_t instOpcode = m_intRep & coprocessorBit;
     if (instOpcode == 0)
     {
-        instOpcode = instToExec & primaryOpcodePattern;
+        instOpcode = m_intRep & primaryOpcodePattern;
         
         if (instOpcode == 0)
         {
-            instOpcode = instToExec & secondaryOpcodePattern;
+            instOpcode = m_intRep & secondaryOpcodePattern;
         }
     }
     else
     {
-        instOpcode = instToExec & 0x7FF00000;
+        instOpcode = m_intRep & 0x7FF00000;
     }
 
-    return instOpcode;
+    return static_cast<Opcode>(instOpcode);
 }
 
 uint32_t Instruction::GetRd() const
