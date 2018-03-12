@@ -21,9 +21,28 @@ uint32_t Instruction::GetImmSe() const
     return res; 
 }
 
-uint32_t Instruction::GetOp() const
+Opcode Instruction::GetOp() const
 {
-    return m_intRep >> 26;
+    const uint32_t coprocessorBit = 0x40000000;
+    const uint32_t primaryOpcodePattern = 0xFC000000;
+    const uint32_t secondaryOpcodePattern = 0x0000003F;
+
+    uint32_t instOpcode = instToExec & coprocessorBit;
+    if (instOpcode == 0)
+    {
+        instOpcode = instToExec & primaryOpcodePattern;
+        
+        if (instOpcode == 0)
+        {
+            instOpcode = instToExec & secondaryOpcodePattern;
+        }
+    }
+    else
+    {
+        instOpcode = instToExec & 0x7FF00000;
+    }
+
+    return instOpcode;
 }
 
 uint32_t Instruction::GetRd() const

@@ -1,6 +1,8 @@
 #ifndef INSTRUCTIONS_H
 #define INSTRUCTIONS_H
 
+#include "opcodes.h"
+
 #include <cstdint>
 
 namespace PSEmu
@@ -16,7 +18,7 @@ public:
     uint32_t GetImm() const;
     uint32_t GetImmJump() const;
     uint32_t GetImmSe() const;
-    uint32_t GetOp() const;
+    Opcode GetOp() const;
     uint32_t GetRd() const;
     uint32_t GetRs() const;
     uint32_t GetRt() const;
