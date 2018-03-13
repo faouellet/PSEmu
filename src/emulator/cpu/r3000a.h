@@ -46,12 +46,6 @@ public:
 
 private:
     void InitOpTable();
-    uint8_t LoadByte(uint32_t address);
-    uint16_t LoadHalfWord(uint32_t address);
-    uint32_t LoadWord(uint32_t address);
-    void StoreByte(uint32_t address, uint8_t value);
-    void StoreHalfWord(uint32_t address, uint16_t value);
-    void StoreWord(uint32_t address, uint32_t value);
     void Branch(uint32_t offset);
     bool WouldOverflow(int32_t lhs, int32_t rhs, std::function<int32_t(int32_t,int32_t)>&& func) const;
     void SetRegister(uint32_t registerIndex, uint32_t value);
@@ -130,6 +124,48 @@ private:
     void ExecuteSWC1(Instruction inst);
     void ExecuteSWC2(Instruction inst);
     void ExecuteSWC3(Instruction inst);
+
+private:
+    // TODO: Load should probably return an optional value since it'll be ignored when the cache is isolated
+    template <typename TSize>
+    TSize Load(uint32_t address)
+    {
+        static_assert(std::is_integral_v<TSize>);
+
+        if ((m_sr & 0x10000) != 0)
+        {
+            // TODO: Msg -> Cache is isolated, load ignored
+            return -1;
+        }
+
+        // Address must be aligned to the number of bytes we want to load
+        if (address % sizeof(TSize) != 0)
+        {
+            TriggerException(ExceptionCause::LOAD_ADDRESS_ERROR);
+        }
+
+        return m_interconnect.Load<TSize>(address);
+    }
+
+    template <typename TSize>
+    void Store(uint32_t address, TSize value)
+    {
+        static_assert(std::is_integral_v<TSize>);
+
+        if ((m_sr & 0x10000) != 0)
+        {
+            // TODO: Msg -> Cache is isolated, write ignored
+            return;
+        }
+
+        // Address must be aligned to the number of bytes we want to load
+        if (address % sizeof(TSize) != 0)
+        {
+            TriggerException(ExceptionCause::STORE_ADDRESS_ERROR);
+        }
+
+        m_interconnect.Store<TSize>(address, value);
+    }
 
 private:
     std::unordered_map<const Opcode, void (R3000A::*)(Instruction)> m_opTable;

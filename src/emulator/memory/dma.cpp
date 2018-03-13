@@ -242,7 +242,7 @@ void DMA::DoMemoryBlockCopy(Port port)
                 return;
             }
             
-            m_ram.StoreWord(curAddr, srcWord);
+            m_ram.Store<uint32_t>(curAddr, srcWord);
         }
 
         address += increment;
@@ -275,7 +275,7 @@ void DMA::DoLinkedListCopy(Port port)
         // In linked list mode, each entry starts with a
         // *header* word. The high byte contains the number
         // of words in the *packet* (not counting the header word)
-        uint32_t header = m_ram.LoadWord(address);
+        uint32_t header = m_ram.Load<uint32_t>(address);
 
         while (header & 0x800000)
         {
@@ -284,7 +284,7 @@ void DMA::DoLinkedListCopy(Port port)
             while (remainingSize > 0)
             {
                 address = (address + 4) & 0x1FFFFC;
-                const uint32_t command = m_ram.LoadWord(address);
+                const uint32_t command = m_ram.Load<uint32_t>(address);
 
                 m_gpu.SetGP0(command);
 

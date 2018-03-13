@@ -39,7 +39,7 @@ void R3000A::Step()
     }
 
     // Fetch instruction at PC
-    const Instruction instToExec = m_interconnect.LoadWord(m_pc);
+    const Instruction instToExec = m_interconnect.Load<uint32_t>(m_pc);
 
     // Increment next PC to point to the next instruction
     m_pc = m_nextPC;
@@ -160,95 +160,6 @@ void R3000A::InitOpTable()
     m_opTable[SWC3]     = &R3000A::ExecuteSWC3;
 }
 
-// TODO: Load* should probably return an optional value since it'll be ignored when the cache is isolated
-uint8_t R3000A::LoadByte(uint32_t address)
-{
-    if ((m_sr & 0x10000) != 0)
-    {
-        // TODO: Msg -> Cache is isolated, load ignored
-        return -1;
-    }
-    return m_interconnect.LoadByte(address);
-}
-
-uint16_t R3000A::LoadHalfWord(uint32_t address)
-{
-    if ((m_sr & 0x10000) != 0)
-    {
-        // TODO: Msg -> Cache is isolated, load ignored
-        return -1;
-    }
-
-    // Address must be 32 bits aligned
-    if (address % 2 != 0)
-    {
-        TriggerException(ExceptionCause::LOAD_ADDRESS_ERROR);
-    }
-
-    return m_interconnect.LoadHalfWord(address);
-}
-
-uint32_t R3000A::LoadWord(uint32_t address)
-{
-    if ((m_sr & 0x10000) != 0)
-    {
-        // TODO: Msg -> Cache is isolated, load ignored
-        return -1;
-    }
-
-    // Address must be 32 bits aligned
-    if (address % 4 != 0)
-    {
-        TriggerException(ExceptionCause::LOAD_ADDRESS_ERROR);
-    }
-
-    return m_interconnect.LoadWord(address);
-}
-
-void R3000A::StoreByte(uint32_t address, uint8_t value)
-{
-    if ((m_sr & 0x10000) != 0)
-    {
-        // TODO: Msg -> Cache is isolated, write ignored
-        return;
-    }
-    m_interconnect.StoreByte(address, value);
-}
-
-void R3000A::StoreHalfWord(uint32_t address, uint16_t value)
-{
-    if ((m_sr & 0x10000) != 0)
-    {
-        // TODO: Msg -> Cache is isolated, write ignored
-        return;
-    }
-
-    // Address must be 16 bits aligned
-    if (address % 2 != 0)
-    {
-        TriggerException(ExceptionCause::STORE_ADDRESS_ERROR);
-    }
-
-    m_interconnect.StoreHalfWord(address, value);
-}
-
-void R3000A::StoreWord(uint32_t address, uint32_t value)
-{
-    if ((m_sr & 0x10000) != 0)
-    {
-        // TODO: Msg -> Cache is isolated, write ignored
-        return;
-    }
-
-    // Address must be 32 bits aligned
-    if (address % 4 != 0)
-    {
-        TriggerException(ExceptionCause::STORE_ADDRESS_ERROR);
-    }
-
-    m_interconnect.StoreWord(address, value);
-}
-
 void R3000A::Branch(uint32_t offset)
 {
     m_isBranching = true;
@@ -322,7 +233,7 @@ void R3000A::ExecuteSW(Instruction inst)
 {
     const uint32_t address = m_registers[inst.GetRs()] + inst.GetImmSe();
     const uint32_t value = m_registers[inst.GetRt()];
-    StoreWord(address, value);
+    Store<uint32_t>(address, value);
 }
 
 void R3000A::ExecuteSLL(Instruction inst)
@@ -383,7 +294,7 @@ void R3000A::ExecuteADDI(Instruction inst)
 void R3000A::ExecuteLW(Instruction inst)
 {
     uint32_t address = m_registers[inst.GetRs()] + inst.GetImmSe();
-    uint32_t value = LoadWord(address); 
+    uint32_t value = Load<uint32_t>(address); 
 
     m_pendingLoad = {{inst.GetRt()}, value};
 }
@@ -402,7 +313,7 @@ void R3000A::ExecuteSH(Instruction inst)
 {
     const uint32_t address = m_registers[inst.GetRs()] + inst.GetImmSe();
     const uint16_t value = m_registers[inst.GetRt()];
-    StoreHalfWord(address, value);
+    Store<uint16_t>(address, value);
 }
 
 void R3000A::ExecuteJAL(Instruction inst)
@@ -422,7 +333,7 @@ void R3000A::ExecuteSB(Instruction inst)
 {
     const uint32_t address = m_registers[inst.GetRs()] + inst.GetImmSe();
     const uint8_t value = m_registers[inst.GetRt()];
-    StoreByte(address, value);
+    Store<uint8_t>(address, value);
 }
 
 void R3000A::ExecuteJR(Instruction inst)
@@ -435,7 +346,7 @@ void R3000A::ExecuteLB(Instruction inst)
 {
     const uint32_t addr = m_registers[inst.GetRs()] + inst.GetImmSe();
     // Converting to int8_t to force sign extension
-    const int8_t value = LoadByte(addr);
+    const int8_t value = Load<uint8_t>(addr);
 
     m_pendingLoad = {{inst.GetRt()}, value};
 }
@@ -504,7 +415,7 @@ void R3000A::ExecuteBLEZ(Instruction inst)
 void R3000A::ExecuteLBU(Instruction inst)
 {
     const uint32_t addr = m_registers[inst.GetRs()] + inst.GetImm();
-    const int8_t value = LoadByte(addr);
+    const int8_t value = Load<uint8_t>(addr);
 
     m_pendingLoad = {{inst.GetRt()}, value};
 }
@@ -675,7 +586,7 @@ void R3000A::ExecuteLHU(Instruction inst)
     // TODO: Subtle bug here and in all memory related operations
     //       The problem is that a load/store shouldn't be completed
     //       if an exception is triggered
-    const uint32_t value = LoadHalfWord(addr);
+    const uint32_t value = Load<uint16_t>(addr);
 
     m_pendingLoad = {{inst.GetRt()}, value};
 }
@@ -690,7 +601,7 @@ void R3000A::ExecuteLH(Instruction inst)
 {
     const uint32_t addr = m_registers[inst.GetRs()] + inst.GetImmSe();
     // Converting to int16_t to force sign extension
-    const int16_t value = LoadHalfWord(addr);
+    const int16_t value = Load<uint16_t>(addr);
 
     m_pendingLoad = {{inst.GetRt()}, value};
 }
@@ -787,7 +698,7 @@ void R3000A::ExecuteLWL(Instruction inst)
     // Next, we load the *aligned* word containing the first
     // addressed byte
     const uint32_t alignedAddr = address & !3;
-    const uint32_t alignedWord = LoadWord(alignedAddr);
+    const uint32_t alignedWord = Load<uint32_t>(alignedAddr);
 
     // Depending on the address alignment, we fetch the 1,2,3 or 4
     // *most* significant bytes and put them in the target register
@@ -825,7 +736,7 @@ void R3000A::ExecuteLWR(Instruction inst)
     // Next, we load the *aligned* word containing the first
     // addressed byte
     const uint32_t alignedAddr = address & !3;
-    const uint32_t alignedWord = LoadWord(alignedAddr);
+    const uint32_t alignedWord = Load<uint32_t>(alignedAddr);
 
     // Depending on the address alignment, we fetch the 1,2,3 or 4
     // *least* significant bytes and put them in the target register
@@ -859,7 +770,7 @@ void R3000A::ExecuteSWL(Instruction inst)
     const uint32_t alignedAddr = address & !3;
 
     // Load the current value for the aligned word at the target address
-    const uint32_t curValue = LoadWord(alignedAddr);
+    const uint32_t curValue = Load<uint32_t>(alignedAddr);
 
     uint32_t newValue;
     switch (address & 3)
@@ -880,7 +791,7 @@ void R3000A::ExecuteSWL(Instruction inst)
             assert(false && "You've reached the unreachable!");
     }
 
-    StoreWord(alignedAddr, newValue);
+    Store<uint32_t>(alignedAddr, newValue);
 }
 
 void R3000A::ExecuteSWR(Instruction inst)
@@ -891,7 +802,7 @@ void R3000A::ExecuteSWR(Instruction inst)
     const uint32_t alignedAddr = address & !3;
 
     // Load the current value for the aligned word at the target address
-    const uint32_t curValue = LoadWord(alignedAddr);
+    const uint32_t curValue = Load<uint32_t>(alignedAddr);
 
     uint32_t newValue;
     switch (address & 3)
@@ -912,7 +823,7 @@ void R3000A::ExecuteSWR(Instruction inst)
             assert(false && "You've reached the unreachable!");
     }
 
-    StoreWord(alignedAddr, newValue);
+    Store<uint32_t>(alignedAddr, newValue);
 }
 
 void R3000A::ExecuteLWC0(Instruction)

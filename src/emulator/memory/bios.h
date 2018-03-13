@@ -1,8 +1,10 @@
 #ifndef BIOS_H
 #define BIOS_H
 
+#include <cassert>
 #include <cstdint>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 namespace PSEmu
@@ -24,10 +26,31 @@ public:
 public:
     bool Init(const std::string& absoluteFilePath);
 
-    uint8_t  LoadByte(uint32_t offset) const;
-    uint32_t LoadWord(uint32_t offset) const;
+    std::vector<uint8_t>& GetData();
 
-    std::vector<uint8_t>& GetData() { return m_data; }
+public:
+    template <typename TSize>
+    TSize Load(uint32_t offset) const
+    {
+        static_assert(std::is_integral_v<TSize>);
+
+        constexpr auto nbByteToLoad = sizeof(TSize);
+
+        // TODO: Replace this assert by having some explicit template instantiations
+        //       for byte, halfword and word?
+        static_assert((nbByteToLoad == 1) || (nbByteToLoad == 2) || (nbByteToLoad == 4));
+
+        TSize value = 0;
+
+        // Don't forget the PSX is a little endian machine!
+        for(int iByte = nbByteToLoad - 1; iByte >= 0; --iByte)
+        {
+            assert((offset + iByte) < m_data.size());
+            value |= static_cast<uint32_t>(m_data[offset + iByte]) << (iByte * 8);
+        }
+
+        return value;
+    }
 
 private:
     std::vector<uint8_t> m_data;
