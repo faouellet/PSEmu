@@ -15,6 +15,9 @@ namespace PSEmu
 
 class R3000A
 {
+public:
+    using Registers = std::array<uint32_t, 32>;
+
 private:
     enum class ExceptionCause
     {
@@ -46,33 +49,25 @@ public:
 
 private:
     void Branch(uint32_t offset);
-    bool WouldOverflow(int32_t lhs, int32_t rhs, std::function<int32_t(int32_t,int32_t)>&& func) const;
     void SetRegister(uint32_t registerIndex, uint32_t value);
     void TriggerException(ExceptionCause cause);
 
 private:
     void ExecuteLUI(Instruction inst);
-    void ExecuteORI(Instruction inst);
     void ExecuteSW(Instruction inst);
     void ExecuteSLL(Instruction inst);
-    void ExecuteADDIU(Instruction inst);
     void ExecuteJ(Instruction inst);
-    void ExecuteOR(Instruction inst);
     void ExecuteMTC0(Instruction inst);
     void ExecuteBNE(Instruction inst);
     void ExecuteADDI(Instruction inst);
     void ExecuteLW(Instruction inst);
-    void ExecuteSLTU(Instruction inst);
-    void ExecuteADDU(Instruction inst);
     void ExecuteSH(Instruction inst);
     void ExecuteJAL(Instruction inst);
-    void ExecuteANDI(Instruction inst);
     void ExecuteSB(Instruction inst);
     void ExecuteJR(Instruction inst);
     void ExecuteLB(Instruction inst);
     void ExecuteBEQ(Instruction inst);
     void ExecuteMFC0(Instruction inst);
-    void ExecuteAND(Instruction inst);
     void ExecuteADD(Instruction inst);
     void ExecuteBGTZ(Instruction inst);
     void ExecuteBLEZ(Instruction inst);
@@ -92,7 +87,6 @@ private:
     void ExecuteDIVU(Instruction inst);
     void ExecuteMFHI(Instruction inst);
     void ExecuteSLT(Instruction inst);
-    void ExecuteSYSCALL(Instruction inst);
     void ExecuteMTLO(Instruction inst);
     void ExecuteMTHI(Instruction inst);
     void ExecuteRFE(Instruction inst);
@@ -103,80 +97,33 @@ private:
     void ExecuteSRAV(Instruction inst);
     void ExecuteSRLV(Instruction inst);
     void ExecuteMULTU(Instruction inst);
-    void ExecuteXOR(Instruction inst);
-    void ExecuteBREAK(Instruction inst);
     void ExecuteMULT(Instruction inst);
     void ExecuteSUB(Instruction inst);
-    void ExecuteXORI(Instruction inst);
-    void ExecuteCOP1(Instruction inst);
-    void ExecuteCOP2(Instruction inst);
-    void ExecuteCOP3(Instruction inst);
     void ExecuteLWL(Instruction inst);
     void ExecuteLWR(Instruction inst);
     void ExecuteSWL(Instruction inst);
     void ExecuteSWR(Instruction inst);
-    void ExecuteLWC0(Instruction inst);
-    void ExecuteLWC1(Instruction inst);
-    void ExecuteLWC2(Instruction inst);
-    void ExecuteLWC3(Instruction inst);
-    void ExecuteSWC0(Instruction inst);
-    void ExecuteSWC1(Instruction inst);
-    void ExecuteSWC2(Instruction inst);
-    void ExecuteSWC3(Instruction inst);
 
 private:
     // TODO: Load should probably return an optional value since it'll be ignored when the cache is isolated
     template <typename TSize>
-    TSize Load(uint32_t address)
-    {
-        static_assert(std::is_integral_v<TSize>);
-
-        if ((m_sr & 0x10000) != 0)
-        {
-            // TODO: Msg -> Cache is isolated, load ignored
-            return -1;
-        }
-
-        // Address must be aligned to the number of bytes we want to load
-        if (address % sizeof(TSize) != 0)
-        {
-            TriggerException(ExceptionCause::LOAD_ADDRESS_ERROR);
-        }
-
-        return m_interconnect.Load<TSize>(address);
-    }
+    TSize Load(uint32_t address);
 
     template <typename TSize>
-    void Store(uint32_t address, TSize value)
-    {
-        static_assert(std::is_integral_v<TSize>);
+    void Store(uint32_t address, TSize value);
 
-        if ((m_sr & 0x10000) != 0)
-        {
-            // TODO: Msg -> Cache is isolated, write ignored
-            return;
-        }
-
-        // Address must be aligned to the number of bytes we want to load
-        if (address % sizeof(TSize) != 0)
-        {
-            TriggerException(ExceptionCause::STORE_ADDRESS_ERROR);
-        }
-
-        m_interconnect.Store<TSize>(address, value);
-    }
     template <typename TOperator, typename TDecoder>
     void ExecuteALU(TOperator&& op, TDecoder&& dec, Instruction inst);
 
 private:
-    std::array<uint32_t, 32> m_registers;  /**< CPU registers */
-    std::array<uint32_t, 32> m_outputRegisters;  /**< CPU registers */
-    uint32_t m_pc;                         /**< Program counter. Points to the next instruction */
-    uint32_t m_nextPC;                     /**< Next value for the PC. Used to simulate the branch delay slot */
-    uint32_t m_currentPC;                  /**< Address of the instruction currently being executed.
-                                                     Used for setting the EPC in exceptions. */
-    uint32_t m_hi;                         /**< Multiplication 64 bit high result or division remainder */
-    uint32_t m_lo;                         /**< Multiplication 64 bit low result or division quotient */
+    Registers m_registers;        /**< CPU registers */
+    Registers m_outputRegisters;  /**< CPU registers */
+    uint32_t m_pc;                /**< Program counter. Points to the next instruction */
+    uint32_t m_nextPC;            /**< Next value for the PC. Used to simulate the branch delay slot */
+    uint32_t m_currentPC;         /**< Address of the instruction currently being executed.
+                                       Used for setting the EPC in exceptions. */
+    uint32_t m_hi;                /**< Multiplication 64 bit high result or division remainder */
+    uint32_t m_lo;                /**< Multiplication 64 bit low result or division quotient */
 
     Interconnect m_interconnect;
     Instruction m_nextInst; /**< Next instruction to execute. Used to simulate the branch delay slot */
@@ -194,10 +141,50 @@ private:
     Debugger m_debugger;
 };
 
+template <typename TSize>
+TSize R3000A::Load(uint32_t address)
+{
+    static_assert(std::is_integral_v<TSize>);
+
+    if ((m_sr & 0x10000) != 0)
+    {
+        // TODO: Msg -> Cache is isolated, load ignored
+        return -1;
+    }
+
+    // Address must be aligned to the number of bytes we want to load
+    if (address % sizeof(TSize) != 0)
+    {
+        TriggerException(ExceptionCause::LOAD_ADDRESS_ERROR);
+    }
+
+    return m_interconnect.Load<TSize>(address);
+}
+
+template <typename TSize>
+void R3000A::Store(uint32_t address, TSize value)
+{
+    static_assert(std::is_integral_v<TSize>);
+
+    if ((m_sr & 0x10000) != 0)
+    {
+        // TODO: Msg -> Cache is isolated, write ignored
+        return;
+    }
+
+    // Address must be aligned to the number of bytes we want to load
+    if (address % sizeof(TSize) != 0)
+    {
+        TriggerException(ExceptionCause::STORE_ADDRESS_ERROR);
+    }
+
+    m_interconnect.Store<TSize>(address, value);
+}
+
 template <typename TOperator, typename TDecoder>
 void R3000A::ExecuteALU(TOperator&& op, TDecoder&& dec, Instruction inst)
 {
-    const auto& [destReg, lhs, rhs] = dec(inst);
+    const auto& [destReg, lhs, rhs] = dec(m_registers, inst);
     SetRegister(destReg, op(lhs, rhs));
 }
 

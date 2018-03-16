@@ -7,11 +7,35 @@
 #include <cassert>
 #include <limits>
 
+using ALUOperands = std::tuple<uint32_t, uint32_t, uint32_t>;
 
 namespace
 {
 
+bool WouldOverflow(int32_t lhs, int32_t rhs, std::function<int32_t(int32_t,int32_t)>&& func)
+{
+    return lhs > func(std::numeric_limits<int32_t>::max(), rhs);
 }
+
+ALUOperands DecodeSignExtendedImmediate(const PSEmu::R3000A::Registers& regs, PSEmu::Instruction inst)
+{
+    return { inst.GetRt(), regs[inst.GetRs()], inst.GetImmSe() };
+}
+
+ALUOperands DecodeZeroExtendedImmediate(const PSEmu::R3000A::Registers& regs, PSEmu::Instruction inst)
+{
+    return { inst.GetRt(), regs[inst.GetRs()], inst.GetImm() };
+}
+
+ALUOperands DecodeThreeOperands(const PSEmu::R3000A::Registers& regs, PSEmu::Instruction inst)
+{
+    return { inst.GetRd(), regs[inst.GetRs()], regs[inst.GetRt()] };
+}
+
+}
+
+namespace PSEmu
+{
 
 R3000A::R3000A(Interconnect interconnect, Debugger debugger) 
     : m_interconnect{ std::move(interconnect) }, 
@@ -55,27 +79,27 @@ void R3000A::Step()
     switch(instToExec.GetOp())
     {
         case LUI:     ExecuteLUI(instToExec); break;
-        case ORI:     ExecuteORI(instToExec); break;
+        case ORI:     ExecuteALU(std::bit_or<uint32_t>{}, DecodeZeroExtendedImmediate, instToExec); break;
         case SW:      ExecuteSW(instToExec); break;
         case SLL:     ExecuteSLL(instToExec); break;
-        case ADDIU:   ExecuteADDIU(instToExec); break;
+        case ADDIU:   ExecuteALU(std::plus<uint32_t>{}, DecodeSignExtendedImmediate, instToExec); break;
         case J:       ExecuteJ(instToExec); break;
-        case OR:      ExecuteOR(instToExec); break;
+        case OR:      ExecuteALU(std::bit_or<uint32_t>{}, DecodeThreeOperands, instToExec); break;
         case MTC0:    ExecuteMTC0(instToExec); break;
         case BNE:     ExecuteBNE(instToExec); break;
         case ADDI:    ExecuteADDI(instToExec); break;
         case LW:      ExecuteLW(instToExec); break;
-        case SLTU:    ExecuteSLTU(instToExec); break;
-        case ADDU:    ExecuteADDU(instToExec); break;
+        case SLTU:    ExecuteALU(std::less<uint32_t>{}, DecodeZeroExtendedImmediate, instToExec); break;
+        case ADDU:    ExecuteALU(std::plus<uint32_t>{}, DecodeZeroExtendedImmediate, instToExec); break;
         case SH:      ExecuteSH(instToExec); break;
         case JAL:     ExecuteJAL(instToExec); break;
-        case ANDI:    ExecuteANDI(instToExec); break;
+        case ANDI:    ExecuteALU(std::bit_and<uint32_t>{}, DecodeZeroExtendedImmediate, instToExec); break;
         case SB:      ExecuteSB(instToExec); break;
         case JR:      ExecuteJR(instToExec); break;
         case LB:      ExecuteLB(instToExec); break;
         case BEQ:     ExecuteBEQ(instToExec); break;
         case MFC0:    ExecuteMFC0(instToExec); break;
-        case AND:     ExecuteAND(instToExec); break;
+        case AND:     ExecuteALU(std::bit_and<uint32_t>{}, DecodeThreeOperands, instToExec); break;
         case ADD:     ExecuteADD(instToExec); break;
         case BGTZ:    ExecuteBGTZ(instToExec); break;
         case BLEZ:    ExecuteBLEZ(instToExec); break;
@@ -95,7 +119,7 @@ void R3000A::Step()
         case DIVU:    ExecuteDIVU(instToExec); break;
         case MFHI:    ExecuteMFHI(instToExec); break;
         case SLT:     ExecuteSLT(instToExec); break;
-        case SYSCALL: ExecuteSYSCALL(instToExec); break;
+        case SYSCALL: TriggerException(ExceptionCause::SYSCALL); break;
         case MTLO:    ExecuteMTLO(instToExec); break;
         case MTHI:    ExecuteMTHI(instToExec); break;
         case RFE :    ExecuteRFE(instToExec); break;
@@ -106,27 +130,27 @@ void R3000A::Step()
         case SRAV:    ExecuteSRAV(instToExec); break;
         case SRLV:    ExecuteSRLV(instToExec); break;
         case MULTU:   ExecuteMULTU(instToExec); break;
-        case XOR:     ExecuteXOR(instToExec); break;
-        case BREAK:   ExecuteBREAK(instToExec); break;
+        case XOR:     ExecuteALU(std::bit_xor<uint32_t>{}, DecodeThreeOperands, instToExec); break;
+        case BREAK:   TriggerException(ExceptionCause::BREAK); break;
         case MULT:    ExecuteMULT(instToExec); break;
         case SUB:     ExecuteSUB(instToExec); break;
-        case XORI:    ExecuteXORI(instToExec); break;
-        case COP1:    ExecuteCOP1(instToExec); break;
-        case COP2:    ExecuteCOP2(instToExec); break;
-        case COP3:    ExecuteCOP3(instToExec); break;
+        case XORI:    ExecuteALU(std::bit_xor<uint32_t>{}, DecodeZeroExtendedImmediate, instToExec); break;
+        case COP1:    TriggerException(ExceptionCause::COPROCESSOR_ERROR); break;
+        case COP2:    assert(false && "Unimplemented instruction"); break;
+        case COP3:    TriggerException(ExceptionCause::COPROCESSOR_ERROR); break;
         case LWL:     ExecuteLWL(instToExec); break;
         case LWR:     ExecuteLWR(instToExec); break;
         case SWL:     ExecuteSWL(instToExec); break;
         case SWR:     ExecuteSWR(instToExec); break;
-        case LWC0:    ExecuteLWC0(instToExec); break;
-        case LWC1:    ExecuteLWC1(instToExec); break;
-        case LWC2:    ExecuteLWC2(instToExec); break;
-        case LWC3:    ExecuteLWC3(instToExec); break;
-        case SWC0:    ExecuteSWC0(instToExec); break;
-        case SWC1:    ExecuteSWC1(instToExec); break;
-        case SWC2:    ExecuteSWC2(instToExec); break;
-        case SWC3:    ExecuteSWC3(instToExec); break;
-        default:    assert(false && "ILLEGAL INSTRUCTION!!!"); TriggerException(ExceptionCause::ILLEGAL_INSTRUCTION); break;
+        case LWC0:    TriggerException(ExceptionCause::COPROCESSOR_ERROR); break;
+        case LWC1:    TriggerException(ExceptionCause::COPROCESSOR_ERROR); break;
+        case LWC2:    assert(false && "Unimplemented instruction"); break;
+        case LWC3:    TriggerException(ExceptionCause::COPROCESSOR_ERROR); break;
+        case SWC0:    TriggerException(ExceptionCause::COPROCESSOR_ERROR); break;
+        case SWC1:    TriggerException(ExceptionCause::COPROCESSOR_ERROR); break;
+        case SWC2:    assert(false && "Unimplemented instruction"); break;
+        case SWC3:    TriggerException(ExceptionCause::COPROCESSOR_ERROR); break;
+        default:      assert(false && "ILLEGAL INSTRUCTION!!!"); TriggerException(ExceptionCause::ILLEGAL_INSTRUCTION); break;
     }
        
     // Copy the output registers as input for the next instruction
@@ -156,11 +180,6 @@ void R3000A::Branch(uint32_t offset)
     m_isBranching = true;
     const uint32_t alignedOffset = offset << 2;
     m_nextPC += alignedOffset;
-}
-
-bool R3000A::WouldOverflow(int32_t lhs, int32_t rhs, std::function<int32_t(int32_t,int32_t)>&& func) const
-{
-    return lhs > func(std::numeric_limits<int32_t>::max(), rhs);
 }
 
 void R3000A::SetRegister(uint32_t registerIndex, uint32_t value)
@@ -215,11 +234,6 @@ void R3000A::ExecuteLUI(Instruction inst)
     SetRegister(inst.GetRt(), res);
 }
 
-void R3000A::ExecuteORI(Instruction inst)
-{
-    SetRegister(inst.GetRt(), inst.GetImm() | m_registers[inst.GetRs()]);
-}
-
 void R3000A::ExecuteSW(Instruction inst)
 {
     const uint32_t address = m_registers[inst.GetRs()] + inst.GetImmSe();
@@ -232,20 +246,10 @@ void R3000A::ExecuteSLL(Instruction inst)
     SetRegister(inst.GetRd(), m_registers[inst.GetRt()] << inst.GetShamt());
 }
 
-void R3000A::ExecuteADDIU(Instruction inst)
-{
-    SetRegister(inst.GetRt(), m_registers[inst.GetRs()] + inst.GetImmSe());
-}
-
 void R3000A::ExecuteJ(Instruction inst)
 {
     m_isBranching = true;
     m_nextPC = (m_pc & 0xF0000000) | (inst.GetImmJump() << 2);
-}
-
-void R3000A::ExecuteOR(Instruction inst)
-{
-    SetRegister(inst.GetRd(), m_registers[inst.GetRs()] | m_registers[inst.GetRt()]);
 }
 
 void R3000A::ExecuteMTC0(Instruction inst)
@@ -290,16 +294,6 @@ void R3000A::ExecuteLW(Instruction inst)
     m_pendingLoad = {{inst.GetRt()}, value};
 }
 
-void R3000A::ExecuteSLTU(Instruction inst)
-{
-    SetRegister(inst.GetRd(), m_registers[inst.GetRs()] < m_registers[inst.GetRt()]);
-}
-
-void R3000A::ExecuteADDU(Instruction inst)
-{
-    SetRegister(inst.GetRd(), m_registers[inst.GetRs()] + m_registers[inst.GetRt()]);
-}
-
 void R3000A::ExecuteSH(Instruction inst)
 {
     const uint32_t address = m_registers[inst.GetRs()] + inst.GetImmSe();
@@ -313,11 +307,6 @@ void R3000A::ExecuteJAL(Instruction inst)
     SetRegister(31, m_pc);
 
     ExecuteJ(inst);
-}
-
-void R3000A::ExecuteANDI(Instruction inst)
-{
-    SetRegister(inst.GetRt(), inst.GetImm() & m_registers[inst.GetRs()]);
 }
 
 void R3000A::ExecuteSB(Instruction inst)
@@ -364,11 +353,6 @@ void R3000A::ExecuteMFC0(Instruction inst)
     SetRegister(inst.GetRt(), m_sr);
 
     m_pendingLoad = {{inst.GetRt()}, m_sr};
-}
-
-void R3000A::ExecuteAND(Instruction inst)
-{
-    SetRegister(inst.GetRt(), inst.GetImm() & m_registers[inst.GetRs()]);
 }
 
 void R3000A::ExecuteADD(Instruction inst)
@@ -545,11 +529,6 @@ void R3000A::ExecuteSLT(Instruction inst)
     SetRegister(inst.GetRd(), static_cast<int32_t>(m_registers[inst.GetRs()]) < static_cast<int32_t>(m_registers[inst.GetRt()]));
 }
 
-void R3000A::ExecuteSYSCALL(Instruction)
-{
-    TriggerException(ExceptionCause::SYSCALL);
-}
-
 void R3000A::ExecuteMTLO(Instruction inst)
 {
     SetRegister(m_lo, m_registers[inst.GetRs()]);
@@ -622,16 +601,6 @@ void R3000A::ExecuteMULTU(Instruction inst)
     m_lo = value;
 }
 
-void R3000A::ExecuteXOR(Instruction inst)
-{
-    SetRegister(inst.GetRd(), m_registers[inst.GetRs()] ^ m_registers[inst.GetRt()]);
-}
-
-void R3000A::ExecuteBREAK(Instruction)
-{
-    TriggerException(ExceptionCause::BREAK);
-}
-
 void R3000A::ExecuteMULT(Instruction inst)
 {
     const int64_t lhs = m_registers[inst.GetRs()];
@@ -655,26 +624,6 @@ void R3000A::ExecuteSUB(Instruction inst)
     }
 
     SetRegister(inst.GetRd(), lhs - rhs);
-}
-
-void R3000A::ExecuteXORI(Instruction inst)
-{
-    SetRegister(inst.GetRt(), inst.GetImm() ^ m_registers[inst.GetRs()]);
-}
-
-void R3000A::ExecuteCOP1(Instruction)
-{
-    TriggerException(ExceptionCause::COPROCESSOR_ERROR);
-}
-
-void R3000A::ExecuteCOP2(Instruction)
-{
-    // TODO: Not implemented yet!
-}
-
-void R3000A::ExecuteCOP3(Instruction)
-{
-    TriggerException(ExceptionCause::COPROCESSOR_ERROR);
 }
 
 void R3000A::ExecuteLWL(Instruction inst)
@@ -817,42 +766,4 @@ void R3000A::ExecuteSWR(Instruction inst)
     Store<uint32_t>(alignedAddr, newValue);
 }
 
-void R3000A::ExecuteLWC0(Instruction)
-{
-    TriggerException(ExceptionCause::COPROCESSOR_ERROR);
-}
-
-void R3000A::ExecuteLWC1(Instruction)
-{
-    TriggerException(ExceptionCause::COPROCESSOR_ERROR);
-}
-
-void R3000A::ExecuteLWC2(Instruction)
-{
-    // TODO: Not implemented yet!
-}
-
-void R3000A::ExecuteLWC3(Instruction)
-{
-    TriggerException(ExceptionCause::COPROCESSOR_ERROR);
-}
-
-void R3000A::ExecuteSWC0(Instruction)
-{
-    TriggerException(ExceptionCause::COPROCESSOR_ERROR);
-}
-
-void R3000A::ExecuteSWC1(Instruction)
-{
-    TriggerException(ExceptionCause::COPROCESSOR_ERROR);
-}
-
-void R3000A::ExecuteSWC2(Instruction)
-{
-    // TODO: Not implemented yet!
-}
-
-void R3000A::ExecuteSWC3(Instruction)
-{
-    TriggerException(ExceptionCause::COPROCESSOR_ERROR);
-}
+}   // end namespace PSEmu
