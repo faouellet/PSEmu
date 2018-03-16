@@ -165,6 +165,8 @@ private:
 
         m_interconnect.Store<TSize>(address, value);
     }
+    template <typename TOperator, typename TDecoder>
+    void ExecuteALU(TOperator&& op, TDecoder&& dec, Instruction inst);
 
 private:
     std::array<uint32_t, 32> m_registers;  /**< CPU registers */
@@ -191,6 +193,13 @@ private:
 
     Debugger m_debugger;
 };
+
+template <typename TOperator, typename TDecoder>
+void R3000A::ExecuteALU(TOperator&& op, TDecoder&& dec, Instruction inst)
+{
+    const auto& [destReg, lhs, rhs] = dec(inst);
+    SetRegister(destReg, op(lhs, rhs));
+}
 
 }   // end namespace PSEmu
 

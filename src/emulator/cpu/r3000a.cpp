@@ -7,7 +7,11 @@
 #include <cassert>
 #include <limits>
 
-using namespace PSEmu;
+
+namespace
+{
+
+}
 
 R3000A::R3000A(Interconnect interconnect, Debugger debugger) 
     : m_interconnect{ std::move(interconnect) }, 
