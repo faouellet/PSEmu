@@ -45,7 +45,6 @@ public:
     uint32_t GetPC() const;
 
 private:
-    void InitOpTable();
     void Branch(uint32_t offset);
     bool WouldOverflow(int32_t lhs, int32_t rhs, std::function<int32_t(int32_t,int32_t)>&& func) const;
     void SetRegister(uint32_t registerIndex, uint32_t value);
@@ -168,7 +167,6 @@ private:
     }
 
 private:
-    std::unordered_map<const Opcode, void (R3000A::*)(Instruction)> m_opTable;
     std::array<uint32_t, 32> m_registers;  /**< CPU registers */
     std::array<uint32_t, 32> m_outputRegisters;  /**< CPU registers */
     uint32_t m_pc;                         /**< Program counter. Points to the next instruction */

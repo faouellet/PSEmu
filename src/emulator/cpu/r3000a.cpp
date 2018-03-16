@@ -15,7 +15,6 @@ R3000A::R3000A(Interconnect interconnect, Debugger debugger)
       m_debugger{ std::move(debugger) }
 {
     Reset();
-    InitOpTable();
 }
 
 void R3000A::Step()
@@ -49,20 +48,85 @@ void R3000A::Step()
     SetRegister(m_pendingLoad.first, m_pendingLoad.second);
     m_pendingLoad = {};
 
-    auto foundIt = m_opTable.find(instToExec.GetOp());
-
-    if (foundIt != m_opTable.cend())
+    switch(instToExec.GetOp())
     {
-        std::invoke(foundIt->second, this, instToExec);
-
-        // Copy the output registers as input for the next instruction
-        m_registers = m_outputRegisters;
+        case LUI:     ExecuteLUI(instToExec); break;
+        case ORI:     ExecuteORI(instToExec); break;
+        case SW:      ExecuteSW(instToExec); break;
+        case SLL:     ExecuteSLL(instToExec); break;
+        case ADDIU:   ExecuteADDIU(instToExec); break;
+        case J:       ExecuteJ(instToExec); break;
+        case OR:      ExecuteOR(instToExec); break;
+        case MTC0:    ExecuteMTC0(instToExec); break;
+        case BNE:     ExecuteBNE(instToExec); break;
+        case ADDI:    ExecuteADDI(instToExec); break;
+        case LW:      ExecuteLW(instToExec); break;
+        case SLTU:    ExecuteSLTU(instToExec); break;
+        case ADDU:    ExecuteADDU(instToExec); break;
+        case SH:      ExecuteSH(instToExec); break;
+        case JAL:     ExecuteJAL(instToExec); break;
+        case ANDI:    ExecuteANDI(instToExec); break;
+        case SB:      ExecuteSB(instToExec); break;
+        case JR:      ExecuteJR(instToExec); break;
+        case LB:      ExecuteLB(instToExec); break;
+        case BEQ:     ExecuteBEQ(instToExec); break;
+        case MFC0:    ExecuteMFC0(instToExec); break;
+        case AND:     ExecuteAND(instToExec); break;
+        case ADD:     ExecuteADD(instToExec); break;
+        case BGTZ:    ExecuteBGTZ(instToExec); break;
+        case BLEZ:    ExecuteBLEZ(instToExec); break;
+        case LBU:     ExecuteLBU(instToExec); break;
+        case JALR:    ExecuteJALR(instToExec); break;
+        case BLTZ:    ExecuteBLTZ(instToExec); break;
+        case BLTZAL:  ExecuteBLTZAL(instToExec); break;
+        case BGEZ:    ExecuteBGEZ(instToExec); break;
+        case BGEZAL:  ExecuteBGEZAL(instToExec); break;
+        case SLTI:    ExecuteSLTI(instToExec); break;
+        case SUBU:    ExecuteSUBU(instToExec); break;
+        case SRA:     ExecuteSRA(instToExec); break;
+        case DIV:     ExecuteDIV(instToExec); break;
+        case MFLO:    ExecuteMFLO(instToExec); break;
+        case SRL:     ExecuteSRL(instToExec); break;
+        case SLTIU:   ExecuteSLTIU(instToExec); break;
+        case DIVU:    ExecuteDIVU(instToExec); break;
+        case MFHI:    ExecuteMFHI(instToExec); break;
+        case SLT:     ExecuteSLT(instToExec); break;
+        case SYSCALL: ExecuteSYSCALL(instToExec); break;
+        case MTLO:    ExecuteMTLO(instToExec); break;
+        case MTHI:    ExecuteMTHI(instToExec); break;
+        case RFE :    ExecuteRFE(instToExec); break;
+        case LHU :    ExecuteLHU(instToExec); break;
+        case SLLV:    ExecuteSLLV(instToExec); break;
+        case LH:      ExecuteLH(instToExec); break;
+        case NOR:     ExecuteNOR(instToExec); break;
+        case SRAV:    ExecuteSRAV(instToExec); break;
+        case SRLV:    ExecuteSRLV(instToExec); break;
+        case MULTU:   ExecuteMULTU(instToExec); break;
+        case XOR:     ExecuteXOR(instToExec); break;
+        case BREAK:   ExecuteBREAK(instToExec); break;
+        case MULT:    ExecuteMULT(instToExec); break;
+        case SUB:     ExecuteSUB(instToExec); break;
+        case XORI:    ExecuteXORI(instToExec); break;
+        case COP1:    ExecuteCOP1(instToExec); break;
+        case COP2:    ExecuteCOP2(instToExec); break;
+        case COP3:    ExecuteCOP3(instToExec); break;
+        case LWL:     ExecuteLWL(instToExec); break;
+        case LWR:     ExecuteLWR(instToExec); break;
+        case SWL:     ExecuteSWL(instToExec); break;
+        case SWR:     ExecuteSWR(instToExec); break;
+        case LWC0:    ExecuteLWC0(instToExec); break;
+        case LWC1:    ExecuteLWC1(instToExec); break;
+        case LWC2:    ExecuteLWC2(instToExec); break;
+        case LWC3:    ExecuteLWC3(instToExec); break;
+        case SWC0:    ExecuteSWC0(instToExec); break;
+        case SWC1:    ExecuteSWC1(instToExec); break;
+        case SWC2:    ExecuteSWC2(instToExec); break;
+        case SWC3:    ExecuteSWC3(instToExec); break;
+        default:    assert(false && "ILLEGAL INSTRUCTION!!!"); TriggerException(ExceptionCause::ILLEGAL_INSTRUCTION); break;
     }
-    else
-    {
-        assert(false && "ILLEGAL INSTRUCTION!!!");
-        TriggerException(ExceptionCause::ILLEGAL_INSTRUCTION);
-    }
+       
+    // Copy the output registers as input for the next instruction
+    m_registers = m_outputRegisters;
 }
 
 void R3000A::Reset()
@@ -81,83 +145,6 @@ void R3000A::Reset()
 uint32_t R3000A::GetPC() const
 {
     return m_pc;
-}
-
-void R3000A::InitOpTable()
-{
-    // TODO: order
-    m_opTable[LUI]      = &R3000A::ExecuteLUI;
-    m_opTable[ORI]      = &R3000A::ExecuteORI;
-    m_opTable[SW]       = &R3000A::ExecuteSW;
-    m_opTable[SLL]      = &R3000A::ExecuteSLL;
-    m_opTable[ADDIU]    = &R3000A::ExecuteADDIU;
-    m_opTable[J]        = &R3000A::ExecuteJ;
-    m_opTable[OR]       = &R3000A::ExecuteOR;
-    m_opTable[MTC0]     = &R3000A::ExecuteMTC0;
-    m_opTable[BNE]      = &R3000A::ExecuteBNE;
-    m_opTable[ADDI]     = &R3000A::ExecuteADDI;
-    m_opTable[LW]       = &R3000A::ExecuteLW;
-    m_opTable[SLTU]     = &R3000A::ExecuteSLTU;
-    m_opTable[ADDU]     = &R3000A::ExecuteADDU;
-    m_opTable[SH]       = &R3000A::ExecuteSH;
-    m_opTable[JAL]      = &R3000A::ExecuteJAL;
-    m_opTable[ANDI]     = &R3000A::ExecuteANDI;
-    m_opTable[SB]       = &R3000A::ExecuteSB;
-    m_opTable[JR]       = &R3000A::ExecuteJR;
-    m_opTable[LB]       = &R3000A::ExecuteLB;
-    m_opTable[BEQ]      = &R3000A::ExecuteBEQ;
-    m_opTable[MFC0]     = &R3000A::ExecuteMFC0;
-    m_opTable[AND]      = &R3000A::ExecuteAND;
-    m_opTable[ADD]      = &R3000A::ExecuteADD;
-    m_opTable[BGTZ]     = &R3000A::ExecuteBGTZ;
-    m_opTable[BLEZ]     = &R3000A::ExecuteBLEZ;
-    m_opTable[LBU]      = &R3000A::ExecuteLBU;
-    m_opTable[JALR]     = &R3000A::ExecuteJALR;
-    m_opTable[BLTZ]     = &R3000A::ExecuteBLTZ;
-    m_opTable[BLTZAL]   = &R3000A::ExecuteBLTZAL;
-    m_opTable[BGEZ]     = &R3000A::ExecuteBGEZ;
-    m_opTable[BGEZAL]   = &R3000A::ExecuteBGEZAL;
-    m_opTable[SLTI]     = &R3000A::ExecuteSLTI;
-    m_opTable[SUBU]     = &R3000A::ExecuteSUBU;
-    m_opTable[SRA]      = &R3000A::ExecuteSRA;
-    m_opTable[DIV]      = &R3000A::ExecuteDIV;
-    m_opTable[MFLO]     = &R3000A::ExecuteMFLO;
-    m_opTable[SRL]      = &R3000A::ExecuteSRL;
-    m_opTable[SLTIU]    = &R3000A::ExecuteSLTIU;
-    m_opTable[DIVU]     = &R3000A::ExecuteDIVU;
-    m_opTable[MFHI]     = &R3000A::ExecuteMFHI;
-    m_opTable[SLT]      = &R3000A::ExecuteSLT;
-    m_opTable[SYSCALL]  = &R3000A::ExecuteSYSCALL;
-    m_opTable[MTLO]     = &R3000A::ExecuteMTLO;
-    m_opTable[MTHI]     = &R3000A::ExecuteMTHI;
-    m_opTable[RFE]      = &R3000A::ExecuteRFE;
-    m_opTable[LHU]      = &R3000A::ExecuteLHU;
-    m_opTable[SLLV]     = &R3000A::ExecuteSLLV;
-    m_opTable[LH]       = &R3000A::ExecuteLH;
-    m_opTable[NOR]      = &R3000A::ExecuteNOR;
-    m_opTable[SRAV]     = &R3000A::ExecuteSRAV;
-    m_opTable[SRLV]     = &R3000A::ExecuteSRLV;
-    m_opTable[MULTU]    = &R3000A::ExecuteMULTU;
-    m_opTable[XOR]      = &R3000A::ExecuteXOR;
-    m_opTable[BREAK]    = &R3000A::ExecuteBREAK;
-    m_opTable[MULT]     = &R3000A::ExecuteMULT;
-    m_opTable[SUB]      = &R3000A::ExecuteSUB;
-    m_opTable[XORI]     = &R3000A::ExecuteXORI;
-    m_opTable[COP1]     = &R3000A::ExecuteCOP1;
-    m_opTable[COP2]     = &R3000A::ExecuteCOP2;
-    m_opTable[COP3]     = &R3000A::ExecuteCOP3;
-    m_opTable[LWL]      = &R3000A::ExecuteLWL;
-    m_opTable[LWR]      = &R3000A::ExecuteLWR;
-    m_opTable[SWL]      = &R3000A::ExecuteSWL;
-    m_opTable[SWR]      = &R3000A::ExecuteSWR;
-    m_opTable[LWC0]     = &R3000A::ExecuteLWC0;
-    m_opTable[LWC1]     = &R3000A::ExecuteLWC1;
-    m_opTable[LWC2]     = &R3000A::ExecuteLWC2;
-    m_opTable[LWC3]     = &R3000A::ExecuteLWC3;
-    m_opTable[SWC0]     = &R3000A::ExecuteSWC0;
-    m_opTable[SWC1]     = &R3000A::ExecuteSWC1;
-    m_opTable[SWC2]     = &R3000A::ExecuteSWC2;
-    m_opTable[SWC3]     = &R3000A::ExecuteSWC3;
 }
 
 void R3000A::Branch(uint32_t offset)
