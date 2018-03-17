@@ -102,14 +102,14 @@ void R3000A::Step()
         case MFC0:    ExecuteMFC0(instToExec); break;
         case AND:     ExecuteALU(std::bit_and<uint32_t>{}, DecodeThreeOperands, instToExec); break;
         case ADD:     ExecuteTrappingALU(std::plus<int32_t>{}, std::minus<int32_t>{}, DecodeThreeOperands, instToExec); break;
-        case BGTZ:    ExecuteBGTZ(instToExec); break;
-        case BLEZ:    ExecuteBLEZ(instToExec); break;
+        case BGTZ:    ExecuteBranch(std::greater<int32_t>{}, instToExec); break;
+        case BLEZ:    ExecuteBranch(std::less_equal<int32_t>{}, instToExec); break;
         case LBU:     ExecuteLBU(instToExec); break;
         case JALR:    ExecuteJALR(instToExec); break;
-        case BLTZ:    ExecuteBLTZ(instToExec); break;
-        case BLTZAL:  ExecuteBLTZAL(instToExec); break;
-        case BGEZ:    ExecuteBGEZ(instToExec); break;
-        case BGEZAL:  ExecuteBGEZAL(instToExec); break;
+        case BLTZ:    ExecuteBranch(std::less<int32_t>{}, instToExec); break;
+        case BLTZAL:  ExecuteBranchAndLink(std::less<int32_t>{}, instToExec); break;
+        case BGEZ:    ExecuteBranch(std::greater_equal<int32_t>{}, instToExec); break;
+        case BGEZAL:  ExecuteBranchAndLink(std::greater_equal<int32_t>{}, instToExec); break;
         case SLTI:    ExecuteSLTI(instToExec); break;
         case SUBU:    ExecuteALU(std::minus<uint32_t>{}, DecodeZeroExtendedImmediate, instToExec); break;
         case SRA:     ExecuteSRA(instToExec); break;
@@ -342,24 +342,6 @@ void R3000A::ExecuteMFC0(Instruction inst)
     m_pendingLoad = {{inst.GetRt()}, m_sr};
 }
 
-void R3000A::ExecuteBGTZ(Instruction inst)
-{
-    const int32_t value = m_registers[inst.GetRs()];
-    if (value > 0)
-    {
-        Branch(inst.GetImmSe());
-    }
-}
-
-void R3000A::ExecuteBLEZ(Instruction inst)
-{
-    const int32_t value = m_registers[inst.GetRs()];
-    if (value <= 0)
-    {
-        Branch(inst.GetImmSe());
-    }
-}
-
 void R3000A::ExecuteLBU(Instruction inst)
 {
     const uint32_t addr = m_registers[inst.GetRs()] + inst.GetImm();
@@ -373,50 +355,6 @@ void R3000A::ExecuteJALR(Instruction inst)
     m_isBranching = true;
     SetRegister(inst.GetRd(), m_pc);
     m_nextPC = m_registers[inst.GetRs()];
-}
-
-void R3000A::ExecuteBLTZ(Instruction inst)
-{
-    const int32_t value = m_registers[inst.GetRs()];
-    if (value < 0)
-    {
-        Branch(inst.GetImmSe());
-    }
-}
-
-void R3000A::ExecuteBLTZAL(Instruction inst)
-{
-    const int32_t value = m_registers[inst.GetRs()];
-
-    // Store return address in the RA register
-    SetRegister(31, m_pc);
-
-    if (value < 0)
-    {
-        Branch(inst.GetImmSe());
-    }
-}
-
-void R3000A::ExecuteBGEZ(Instruction inst)
-{
-    const int32_t value = m_registers[inst.GetRs()];
-    if (value > 0)
-    {
-        Branch(inst.GetImmSe());
-    }
-}
-
-void R3000A::ExecuteBGEZAL(Instruction inst)
-{
-    const int32_t value = m_registers[inst.GetRs()];
-
-    // Store return address in the RA register
-    SetRegister(31, m_pc);
-
-    if (value > 0)
-    {
-        Branch(inst.GetImmSe());
-    }
 }
 
 void R3000A::ExecuteSLTI(Instruction inst)

@@ -69,14 +69,8 @@ private:
     void ExecuteLB(Instruction inst);
     void ExecuteBEQ(Instruction inst);
     void ExecuteMFC0(Instruction inst);
-    void ExecuteBGTZ(Instruction inst);
-    void ExecuteBLEZ(Instruction inst);
     void ExecuteLBU(Instruction inst);
     void ExecuteJALR(Instruction inst);
-    void ExecuteBLTZ(Instruction inst);
-    void ExecuteBLTZAL(Instruction inst);
-    void ExecuteBGEZ(Instruction inst);
-    void ExecuteBGEZAL(Instruction inst);
     void ExecuteSLTI(Instruction inst);
     void ExecuteSRA(Instruction inst);
     void ExecuteDIV(Instruction inst);
@@ -110,6 +104,12 @@ private:
 
     template <typename TOperator, typename TOverflow, typename TDecoder>
     void ExecuteTrappingALU(TOperator&& op, TOverflow&& overflowHandler, TDecoder&& dec, Instruction inst);
+
+    template <typename TComparator>
+    void ExecuteBranch(TComparator&& comp, Instruction inst);
+
+    template <typename TComparator>
+    void ExecuteBranchAndLink(TComparator&& comp, Instruction inst);
 
 private:
     Registers m_registers;        /**< CPU registers */
@@ -196,6 +196,25 @@ void R3000A::ExecuteTrappingALU(TOperator&& op, TOverflow&& overflowHandler, TDe
     }
 
     SetRegister(destReg, op(lhs, rhs));
+}
+
+template <typename TComparator>
+void R3000A::ExecuteBranch(TComparator&& comp, Instruction inst)
+{
+    const int32_t value = m_registers[inst.GetRs()];
+    if (comp(value, 0))
+    {
+        Branch(inst.GetImmSe());
+    }
+}
+
+template <typename TComparator>
+void R3000A::ExecuteBranchAndLink(TComparator&& comp, Instruction inst)
+{
+    // Store return address in the RA register
+    SetRegister(31, m_pc);
+
+    ExecuteBranch(std::forward<TComparator>(comp), inst);
 }
 
 }   // end namespace PSEmu
