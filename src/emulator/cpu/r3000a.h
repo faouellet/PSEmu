@@ -8,7 +8,6 @@
 
 #include <array>
 #include <functional>
-#include <unordered_map>
 
 bool WouldOverflow(int32_t lhs, int32_t rhs, std::function<int32_t(int32_t,int32_t)> func);
 
@@ -56,20 +55,14 @@ private:
 
 private:
     void ExecuteLUI(Instruction inst);
-    void ExecuteSW(Instruction inst);
     void ExecuteSLL(Instruction inst);
     void ExecuteJ(Instruction inst);
     void ExecuteMTC0(Instruction inst);
     void ExecuteBNE(Instruction inst);
-    void ExecuteLW(Instruction inst);
-    void ExecuteSH(Instruction inst);
     void ExecuteJAL(Instruction inst);
-    void ExecuteSB(Instruction inst);
     void ExecuteJR(Instruction inst);
-    void ExecuteLB(Instruction inst);
     void ExecuteBEQ(Instruction inst);
     void ExecuteMFC0(Instruction inst);
-    void ExecuteLBU(Instruction inst);
     void ExecuteJALR(Instruction inst);
     void ExecuteSLTI(Instruction inst);
     void ExecuteSRA(Instruction inst);
@@ -78,9 +71,7 @@ private:
     void ExecuteDIVU(Instruction inst);
     void ExecuteSLT(Instruction inst);
     void ExecuteRFE(Instruction inst);
-    void ExecuteLHU(Instruction inst);
     void ExecuteSLLV(Instruction inst);
-    void ExecuteLH(Instruction inst);
     void ExecuteNOR(Instruction inst);
     void ExecuteSRAV(Instruction inst);
     void ExecuteSRLV(Instruction inst);
@@ -111,6 +102,12 @@ private:
     template <typename TComparator>
     void ExecuteBranchAndLink(TComparator&& comp, Instruction inst);
 
+    template <typename TLoad, typename TExtension = TLoad>
+    void ExecuteLoad(Instruction inst);
+
+    template <typename TSize>
+    void ExecuteStore(Instruction inst);
+
 private:
     Registers m_registers;        /**< CPU registers */
     Registers m_outputRegisters;  /**< CPU registers */
@@ -122,17 +119,17 @@ private:
     uint32_t m_lo;                /**< Multiplication 64 bit low result or division quotient */
 
     Interconnect m_interconnect;
-    Instruction m_nextInst; /**< Next instruction to execute. Used to simulate the branch delay slot */
+    Instruction m_nextInst;       /**< Next instruction to execute. Used to simulate the branch delay slot */
     std::pair<uint32_t, uint32_t> m_pendingLoad; /**< Load initiated by the current instruction */
 
-    uint32_t m_sr;     /**< Cop0 register 12: Status register
-                                 It is used to mask exceptions and control the cache behavior */
-    uint32_t m_cause;  /**< Cop0 register 13: Cause register */
-    uint32_t m_epc;    /**< Cop0 register 14: EPC register */
+    uint32_t m_sr;                /**< Cop0 register 12: Status register
+                                        It is used to mask exceptions and control the cache behavior */
+    uint32_t m_cause;             /**< Cop0 register 13: Cause register */
+    uint32_t m_epc;               /**< Cop0 register 14: EPC register */
 
-    bool m_isBranching;     /**< Set by the current instruction if a branch occured and the next instruction
-                                 will be in the delay slot */
-    bool m_isInDelaySlot;   /**< Set if the current instruction executes in the delay slot */
+    bool m_isBranching;           /**< Set by the current instruction if a branch occured and the next instruction
+                                       will be in the delay slot */
+    bool m_isInDelaySlot;         /**< Set if the current instruction executes in the delay slot */
 
     Debugger m_debugger;
 };
@@ -215,6 +212,27 @@ void R3000A::ExecuteBranchAndLink(TComparator&& comp, Instruction inst)
     SetRegister(31, m_pc);
 
     ExecuteBranch(std::forward<TComparator>(comp), inst);
+}
+
+template <typename TLoad, typename TExtension>
+void R3000A::ExecuteLoad(Instruction inst)
+{
+    uint32_t address = m_registers[inst.GetRs()] + inst.GetImmSe();
+
+    // TODO: Subtle bug here and in all memory related operations
+    //       The problem is that a load/store shouldn't be completed
+    //       if an exception is triggered
+    TExtension value = Load<TLoad>(address); 
+
+    m_pendingLoad = {{inst.GetRt()}, value};
+}
+
+template <typename TSize>
+void R3000A::ExecuteStore(Instruction inst)
+{
+    const uint32_t address = m_registers[inst.GetRs()] + inst.GetImmSe();
+    const TSize value = m_registers[inst.GetRt()];
+    Store<TSize>(address, value);
 }
 
 }   // end namespace PSEmu

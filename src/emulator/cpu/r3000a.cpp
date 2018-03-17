@@ -81,7 +81,7 @@ void R3000A::Step()
     {
         case LUI:     ExecuteLUI(instToExec); break;
         case ORI:     ExecuteALU(std::bit_or<uint32_t>{}, DecodeZeroExtendedImmediate, instToExec); break;
-        case SW:      ExecuteSW(instToExec); break;
+        case SW:      ExecuteStore<uint32_t>(instToExec); break;
         case SLL:     ExecuteSLL(instToExec); break;
         case ADDIU:   ExecuteALU(std::plus<uint32_t>{}, DecodeSignExtendedImmediate, instToExec); break;
         case J:       ExecuteJ(instToExec); break;
@@ -89,22 +89,22 @@ void R3000A::Step()
         case MTC0:    ExecuteMTC0(instToExec); break;
         case BNE:     ExecuteBNE(instToExec); break;
         case ADDI:    ExecuteTrappingALU(std::plus<int32_t>{}, std::minus<int32_t>{}, DecodeSignExtendedImmediate, instToExec); break;
-        case LW:      ExecuteLW(instToExec); break;
+        case LW:      ExecuteLoad<uint32_t>(instToExec); break;
         case SLTU:    ExecuteALU(std::less<uint32_t>{}, DecodeZeroExtendedImmediate, instToExec); break;
         case ADDU:    ExecuteALU(std::plus<uint32_t>{}, DecodeZeroExtendedImmediate, instToExec); break;
-        case SH:      ExecuteSH(instToExec); break;
+        case SH:      ExecuteStore<uint16_t>(instToExec); break;
         case JAL:     ExecuteJAL(instToExec); break;
         case ANDI:    ExecuteALU(std::bit_and<uint32_t>{}, DecodeZeroExtendedImmediate, instToExec); break;
-        case SB:      ExecuteSB(instToExec); break;
+        case SB:      ExecuteStore<uint8_t>(instToExec); break;
         case JR:      ExecuteJR(instToExec); break;
-        case LB:      ExecuteLB(instToExec); break;
+        case LB:      ExecuteLoad<uint8_t, int8_t>(instToExec); break;
         case BEQ:     ExecuteBEQ(instToExec); break;
         case MFC0:    ExecuteMFC0(instToExec); break;
         case AND:     ExecuteALU(std::bit_and<uint32_t>{}, DecodeThreeOperands, instToExec); break;
         case ADD:     ExecuteTrappingALU(std::plus<int32_t>{}, std::minus<int32_t>{}, DecodeThreeOperands, instToExec); break;
         case BGTZ:    ExecuteBranch(std::greater<int32_t>{}, instToExec); break;
         case BLEZ:    ExecuteBranch(std::less_equal<int32_t>{}, instToExec); break;
-        case LBU:     ExecuteLBU(instToExec); break;
+        case LBU:     ExecuteLoad<uint8_t>(instToExec); break;
         case JALR:    ExecuteJALR(instToExec); break;
         case BLTZ:    ExecuteBranch(std::less<int32_t>{}, instToExec); break;
         case BLTZAL:  ExecuteBranchAndLink(std::less<int32_t>{}, instToExec); break;
@@ -124,9 +124,9 @@ void R3000A::Step()
         case MTLO:    SetRegister(m_lo, m_registers[instToExec.GetRs()]); break;
         case MTHI:    SetRegister(m_hi, m_registers[instToExec.GetRs()]); break;
         case RFE :    ExecuteRFE(instToExec); break;
-        case LHU :    ExecuteLHU(instToExec); break;
+        case LHU :    ExecuteLoad<uint16_t>(instToExec); break;
         case SLLV:    ExecuteSLLV(instToExec); break;
-        case LH:      ExecuteLH(instToExec); break;
+        case LH:      ExecuteLoad<uint16_t, int16_t>(instToExec); break;
         case NOR:     ExecuteNOR(instToExec); break;
         case SRAV:    ExecuteSRAV(instToExec); break;
         case SRLV:    ExecuteSRLV(instToExec); break;
@@ -235,13 +235,6 @@ void R3000A::ExecuteLUI(Instruction inst)
     SetRegister(inst.GetRt(), res);
 }
 
-void R3000A::ExecuteSW(Instruction inst)
-{
-    const uint32_t address = m_registers[inst.GetRs()] + inst.GetImmSe();
-    const uint32_t value = m_registers[inst.GetRt()];
-    Store<uint32_t>(address, value);
-}
-
 void R3000A::ExecuteSLL(Instruction inst)
 {
     SetRegister(inst.GetRd(), m_registers[inst.GetRt()] << inst.GetShamt());
@@ -273,21 +266,6 @@ void R3000A::ExecuteBNE(Instruction inst)
     }
 }
 
-void R3000A::ExecuteLW(Instruction inst)
-{
-    uint32_t address = m_registers[inst.GetRs()] + inst.GetImmSe();
-    uint32_t value = Load<uint32_t>(address); 
-
-    m_pendingLoad = {{inst.GetRt()}, value};
-}
-
-void R3000A::ExecuteSH(Instruction inst)
-{
-    const uint32_t address = m_registers[inst.GetRs()] + inst.GetImmSe();
-    const uint16_t value = m_registers[inst.GetRt()];
-    Store<uint16_t>(address, value);
-}
-
 void R3000A::ExecuteJAL(Instruction inst)
 {
     // Store return address in the RA register
@@ -296,26 +274,10 @@ void R3000A::ExecuteJAL(Instruction inst)
     ExecuteJ(inst);
 }
 
-void R3000A::ExecuteSB(Instruction inst)
-{
-    const uint32_t address = m_registers[inst.GetRs()] + inst.GetImmSe();
-    const uint8_t value = m_registers[inst.GetRt()];
-    Store<uint8_t>(address, value);
-}
-
 void R3000A::ExecuteJR(Instruction inst)
 {
     m_isBranching = true;
     m_nextPC = m_registers[inst.GetRs()];
-}
-
-void R3000A::ExecuteLB(Instruction inst)
-{
-    const uint32_t addr = m_registers[inst.GetRs()] + inst.GetImmSe();
-    // Converting to int8_t to force sign extension
-    const int8_t value = Load<uint8_t>(addr);
-
-    m_pendingLoad = {{inst.GetRt()}, value};
 }
 
 void R3000A::ExecuteBEQ(Instruction inst)
@@ -340,14 +302,6 @@ void R3000A::ExecuteMFC0(Instruction inst)
     SetRegister(inst.GetRt(), m_sr);
 
     m_pendingLoad = {{inst.GetRt()}, m_sr};
-}
-
-void R3000A::ExecuteLBU(Instruction inst)
-{
-    const uint32_t addr = m_registers[inst.GetRs()] + inst.GetImm();
-    const int8_t value = Load<uint8_t>(addr);
-
-    m_pendingLoad = {{inst.GetRt()}, value};
 }
 
 void R3000A::ExecuteJALR(Instruction inst)
@@ -430,31 +384,10 @@ void R3000A::ExecuteRFE(Instruction)
     m_sr |= mode >> 2;
 }
 
-void R3000A::ExecuteLHU(Instruction inst)
-{
-    const uint32_t addr = m_registers[inst.GetRs()] + inst.GetImmSe();
-
-    // TODO: Subtle bug here and in all memory related operations
-    //       The problem is that a load/store shouldn't be completed
-    //       if an exception is triggered
-    const uint32_t value = Load<uint16_t>(addr);
-
-    m_pendingLoad = {{inst.GetRt()}, value};
-}
-
 void R3000A::ExecuteSLLV(Instruction inst)
 {
     // Shift amount is truncated to 5 bits
     SetRegister(inst.GetRd(), m_registers[inst.GetRt()] << (m_registers[inst.GetRs()] & 0x1F));
-}
-
-void R3000A::ExecuteLH(Instruction inst)
-{
-    const uint32_t addr = m_registers[inst.GetRs()] + inst.GetImmSe();
-    // Converting to int16_t to force sign extension
-    const int16_t value = Load<uint16_t>(addr);
-
-    m_pendingLoad = {{inst.GetRt()}, value};
 }
 
 void R3000A::ExecuteNOR(Instruction inst)
