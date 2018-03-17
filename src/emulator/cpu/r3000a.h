@@ -10,6 +10,8 @@
 #include <functional>
 #include <unordered_map>
 
+bool WouldOverflow(int32_t lhs, int32_t rhs, std::function<int32_t(int32_t,int32_t)> func);
+
 namespace PSEmu
 {
 
@@ -59,7 +61,6 @@ private:
     void ExecuteJ(Instruction inst);
     void ExecuteMTC0(Instruction inst);
     void ExecuteBNE(Instruction inst);
-    void ExecuteADDI(Instruction inst);
     void ExecuteLW(Instruction inst);
     void ExecuteSH(Instruction inst);
     void ExecuteJAL(Instruction inst);
@@ -68,7 +69,6 @@ private:
     void ExecuteLB(Instruction inst);
     void ExecuteBEQ(Instruction inst);
     void ExecuteMFC0(Instruction inst);
-    void ExecuteADD(Instruction inst);
     void ExecuteBGTZ(Instruction inst);
     void ExecuteBLEZ(Instruction inst);
     void ExecuteLBU(Instruction inst);
@@ -78,17 +78,11 @@ private:
     void ExecuteBGEZ(Instruction inst);
     void ExecuteBGEZAL(Instruction inst);
     void ExecuteSLTI(Instruction inst);
-    void ExecuteSUBU(Instruction inst);
     void ExecuteSRA(Instruction inst);
     void ExecuteDIV(Instruction inst);
-    void ExecuteMFLO(Instruction inst);
     void ExecuteSRL(Instruction inst);
-    void ExecuteSLTIU(Instruction inst);
     void ExecuteDIVU(Instruction inst);
-    void ExecuteMFHI(Instruction inst);
     void ExecuteSLT(Instruction inst);
-    void ExecuteMTLO(Instruction inst);
-    void ExecuteMTHI(Instruction inst);
     void ExecuteRFE(Instruction inst);
     void ExecuteLHU(Instruction inst);
     void ExecuteSLLV(Instruction inst);
@@ -98,7 +92,6 @@ private:
     void ExecuteSRLV(Instruction inst);
     void ExecuteMULTU(Instruction inst);
     void ExecuteMULT(Instruction inst);
-    void ExecuteSUB(Instruction inst);
     void ExecuteLWL(Instruction inst);
     void ExecuteLWR(Instruction inst);
     void ExecuteSWL(Instruction inst);
@@ -114,6 +107,9 @@ private:
 
     template <typename TOperator, typename TDecoder>
     void ExecuteALU(TOperator&& op, TDecoder&& dec, Instruction inst);
+
+    template <typename TOperator, typename TOverflow, typename TDecoder>
+    void ExecuteTrappingALU(TOperator&& op, TOverflow&& overflowHandler, TDecoder&& dec, Instruction inst);
 
 private:
     Registers m_registers;        /**< CPU registers */
@@ -185,6 +181,20 @@ template <typename TOperator, typename TDecoder>
 void R3000A::ExecuteALU(TOperator&& op, TDecoder&& dec, Instruction inst)
 {
     const auto& [destReg, lhs, rhs] = dec(m_registers, inst);
+    SetRegister(destReg, op(lhs, rhs));
+}
+
+template <typename TOperator, typename TOverflow, typename TDecoder>
+void R3000A::ExecuteTrappingALU(TOperator&& op, TOverflow&& overflowHandler, TDecoder&& dec, Instruction inst)
+{
+    const auto& [destReg, lhs, rhs] = dec(m_registers, inst);
+
+    // Check for overflow.
+    if (WouldOverflow(lhs, rhs, overflowHandler))
+    {
+        TriggerException(ExceptionCause::OVERFLOW);
+    }
+
     SetRegister(destReg, op(lhs, rhs));
 }
 

@@ -7,15 +7,11 @@
 #include <cassert>
 #include <limits>
 
+// TODO: This might not work with ExecuteTrappingALU which works on signed integers
 using ALUOperands = std::tuple<uint32_t, uint32_t, uint32_t>;
 
 namespace
 {
-
-bool WouldOverflow(int32_t lhs, int32_t rhs, std::function<int32_t(int32_t,int32_t)>&& func)
-{
-    return lhs > func(std::numeric_limits<int32_t>::max(), rhs);
-}
 
 ALUOperands DecodeSignExtendedImmediate(const PSEmu::R3000A::Registers& regs, PSEmu::Instruction inst)
 {
@@ -32,6 +28,11 @@ ALUOperands DecodeThreeOperands(const PSEmu::R3000A::Registers& regs, PSEmu::Ins
     return { inst.GetRd(), regs[inst.GetRs()], regs[inst.GetRt()] };
 }
 
+}
+
+bool WouldOverflow(int32_t lhs, int32_t rhs, std::function<int32_t(int32_t,int32_t)> func)
+{
+    return lhs > func(std::numeric_limits<int32_t>::max(), rhs);
 }
 
 namespace PSEmu
@@ -87,7 +88,7 @@ void R3000A::Step()
         case OR:      ExecuteALU(std::bit_or<uint32_t>{}, DecodeThreeOperands, instToExec); break;
         case MTC0:    ExecuteMTC0(instToExec); break;
         case BNE:     ExecuteBNE(instToExec); break;
-        case ADDI:    ExecuteADDI(instToExec); break;
+        case ADDI:    ExecuteTrappingALU(std::plus<int32_t>{}, std::minus<int32_t>{}, DecodeSignExtendedImmediate, instToExec); break;
         case LW:      ExecuteLW(instToExec); break;
         case SLTU:    ExecuteALU(std::less<uint32_t>{}, DecodeZeroExtendedImmediate, instToExec); break;
         case ADDU:    ExecuteALU(std::plus<uint32_t>{}, DecodeZeroExtendedImmediate, instToExec); break;
@@ -100,7 +101,7 @@ void R3000A::Step()
         case BEQ:     ExecuteBEQ(instToExec); break;
         case MFC0:    ExecuteMFC0(instToExec); break;
         case AND:     ExecuteALU(std::bit_and<uint32_t>{}, DecodeThreeOperands, instToExec); break;
-        case ADD:     ExecuteADD(instToExec); break;
+        case ADD:     ExecuteTrappingALU(std::plus<int32_t>{}, std::minus<int32_t>{}, DecodeThreeOperands, instToExec); break;
         case BGTZ:    ExecuteBGTZ(instToExec); break;
         case BLEZ:    ExecuteBLEZ(instToExec); break;
         case LBU:     ExecuteLBU(instToExec); break;
@@ -110,18 +111,18 @@ void R3000A::Step()
         case BGEZ:    ExecuteBGEZ(instToExec); break;
         case BGEZAL:  ExecuteBGEZAL(instToExec); break;
         case SLTI:    ExecuteSLTI(instToExec); break;
-        case SUBU:    ExecuteSUBU(instToExec); break;
+        case SUBU:    ExecuteALU(std::minus<uint32_t>{}, DecodeZeroExtendedImmediate, instToExec); break;
         case SRA:     ExecuteSRA(instToExec); break;
         case DIV:     ExecuteDIV(instToExec); break;
-        case MFLO:    ExecuteMFLO(instToExec); break;
+        case MFLO:    SetRegister(instToExec.GetRd(), m_lo); break;
         case SRL:     ExecuteSRL(instToExec); break;
-        case SLTIU:   ExecuteSLTIU(instToExec); break;
+        case SLTIU:   ExecuteALU(std::less<uint32_t>{}, DecodeSignExtendedImmediate, instToExec); break;
         case DIVU:    ExecuteDIVU(instToExec); break;
-        case MFHI:    ExecuteMFHI(instToExec); break;
+        case MFHI:    SetRegister(instToExec.GetRd(), m_hi); break;
         case SLT:     ExecuteSLT(instToExec); break;
         case SYSCALL: TriggerException(ExceptionCause::SYSCALL); break;
-        case MTLO:    ExecuteMTLO(instToExec); break;
-        case MTHI:    ExecuteMTHI(instToExec); break;
+        case MTLO:    SetRegister(m_lo, m_registers[instToExec.GetRs()]); break;
+        case MTHI:    SetRegister(m_hi, m_registers[instToExec.GetRs()]); break;
         case RFE :    ExecuteRFE(instToExec); break;
         case LHU :    ExecuteLHU(instToExec); break;
         case SLLV:    ExecuteSLLV(instToExec); break;
@@ -133,7 +134,7 @@ void R3000A::Step()
         case XOR:     ExecuteALU(std::bit_xor<uint32_t>{}, DecodeThreeOperands, instToExec); break;
         case BREAK:   TriggerException(ExceptionCause::BREAK); break;
         case MULT:    ExecuteMULT(instToExec); break;
-        case SUB:     ExecuteSUB(instToExec); break;
+        case SUB:     ExecuteTrappingALU(std::minus<int32_t>{}, std::plus<int32_t>{}, DecodeThreeOperands, instToExec); break;
         case XORI:    ExecuteALU(std::bit_xor<uint32_t>{}, DecodeZeroExtendedImmediate, instToExec); break;
         case COP1:    TriggerException(ExceptionCause::COPROCESSOR_ERROR); break;
         case COP2:    assert(false && "Unimplemented instruction"); break;
@@ -272,20 +273,6 @@ void R3000A::ExecuteBNE(Instruction inst)
     }
 }
 
-void R3000A::ExecuteADDI(Instruction inst)
-{
-    const int32_t lhs = m_registers[inst.GetRs()];
-    const int32_t rhs = inst.GetImmSe();
-
-    // Check for overflow.
-    if (WouldOverflow(lhs, rhs, std::minus<int32_t>()))
-    {
-        TriggerException(ExceptionCause::OVERFLOW);
-    }
-
-    SetRegister(inst.GetRt(), lhs + rhs);
-}
-
 void R3000A::ExecuteLW(Instruction inst)
 {
     uint32_t address = m_registers[inst.GetRs()] + inst.GetImmSe();
@@ -353,20 +340,6 @@ void R3000A::ExecuteMFC0(Instruction inst)
     SetRegister(inst.GetRt(), m_sr);
 
     m_pendingLoad = {{inst.GetRt()}, m_sr};
-}
-
-void R3000A::ExecuteADD(Instruction inst)
-{
-    const int32_t lhs = m_registers[inst.GetRs()];
-    const int32_t rhs = m_registers[inst.GetRt()];
-
-    // Check for overflow.
-    if (WouldOverflow(lhs, rhs, std::minus<int32_t>()))
-    {
-        TriggerException(ExceptionCause::OVERFLOW);
-    }   
- 
-    SetRegister(inst.GetRd(), lhs + rhs);
 }
 
 void R3000A::ExecuteBGTZ(Instruction inst)
@@ -451,11 +424,6 @@ void R3000A::ExecuteSLTI(Instruction inst)
     SetRegister(inst.GetRt(), static_cast<int32_t>(m_registers[inst.GetRs()]) < static_cast<int32_t>(inst.GetImmSe()));
 }
 
-void R3000A::ExecuteSUBU(Instruction inst)
-{
-    SetRegister(inst.GetRd(), m_registers[inst.GetRs()] - m_registers[inst.GetRt()]);
-}
-
 void R3000A::ExecuteSRA(Instruction inst)
 {
     const uint32_t value = (static_cast<int32_t>(inst.GetRt()) >> inst.GetShamt());
@@ -486,19 +454,9 @@ void R3000A::ExecuteDIV(Instruction inst)
     }
 }
 
-void R3000A::ExecuteMFLO(Instruction inst)
-{
-    SetRegister(inst.GetRd(), m_lo);
-}
-
 void R3000A::ExecuteSRL(Instruction inst)
 {
     SetRegister(inst.GetRd(), inst >> inst.GetShamt());
-}
-
-void R3000A::ExecuteSLTIU(Instruction inst)
-{
-    SetRegister(inst.GetRt(), m_registers[inst.GetRs()] < inst.GetImmSe());
 }
 
 void R3000A::ExecuteDIVU(Instruction inst)
@@ -519,24 +477,9 @@ void R3000A::ExecuteDIVU(Instruction inst)
     }
 }
 
-void R3000A::ExecuteMFHI(Instruction inst)
-{
-    SetRegister(inst.GetRd(), m_hi);
-}
-
 void R3000A::ExecuteSLT(Instruction inst)
 {
     SetRegister(inst.GetRd(), static_cast<int32_t>(m_registers[inst.GetRs()]) < static_cast<int32_t>(m_registers[inst.GetRt()]));
-}
-
-void R3000A::ExecuteMTLO(Instruction inst)
-{
-    SetRegister(m_lo, m_registers[inst.GetRs()]);
-}
-
-void R3000A::ExecuteMTHI(Instruction inst)
-{
-    SetRegister(m_hi, m_registers[inst.GetRs()]);
 }
 
 void R3000A::ExecuteRFE(Instruction)
@@ -610,20 +553,6 @@ void R3000A::ExecuteMULT(Instruction inst)
 
     m_hi = result >> 32;
     m_lo = result;
-}
-
-void R3000A::ExecuteSUB(Instruction inst)
-{
-    const int32_t lhs = m_registers[inst.GetRs()];
-    const int32_t rhs = m_registers[inst.GetRt()];
-
-    // Check for overflow.
-    if (WouldOverflow(lhs, rhs, std::plus<int32_t>()))
-    {
-        TriggerException(ExceptionCause::OVERFLOW);
-    }
-
-    SetRegister(inst.GetRd(), lhs - rhs);
 }
 
 void R3000A::ExecuteLWL(Instruction inst)
