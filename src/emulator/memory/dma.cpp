@@ -35,47 +35,39 @@ uint32_t DMA::RegisterRead(uint32_t offset) const
 
     uint32_t value = 0;
 
-    switch (major)
+    if(0 < major && major < 7)
     {
-        case 1:
-        case 2:
-        case 3:
-        case 4:
-        case 5:
-        case 6:
-            {
-                const Channel& chan = GetChannel(IndexToPort(major));
-                switch (minor)
-                {
-                    case 0:
-                        return chan.GetBase();
-                    case 4:
-                        return chan.GetBlockControl();
-                    case 8:
-                        return chan.GetControl();
-                    default:
-                        assert(false && "Unhandled DMA read");
-                        return value;
-                }
-            }
-        // Common DMA registers
-        case 7:
+        const Channel& chan = GetChannel(IndexToPort(major));
+        switch (minor)
         {
-            switch (minor)
-            {
-                case 0:
-                    return GetControl();
-                case 4:
-                    return GetInterrupt();
-                default:
-                    assert(false && "Unhandled DMA read");    
-                    return value;
-            }
+            case 0:
+                return chan.GetBase();
+            case 4:
+                return chan.GetBlockControl();
+            case 8:
+                return chan.GetControl();
+            default:
+                assert(false && "Unhandled DMA read");
+                return value;
         }
-        default:
-            assert(false && "Unhandled DMA read");
-            return value;
     }
+    else if (major == 7)
+    {
+        // Common DMA registers
+        switch (minor)
+        {
+            case 0:
+                return GetControl();
+            case 4:
+                return GetInterrupt();
+            default:
+                assert(false && "Unhandled DMA read");    
+                return value;
+        }
+    }
+            
+    assert(false && "Unhandled DMA read");
+    return value;
 }
 
 void DMA::RegisterWrite(uint32_t offset, uint32_t value)
@@ -83,51 +75,41 @@ void DMA::RegisterWrite(uint32_t offset, uint32_t value)
     const uint32_t major = (offset & 0x70) >> 4;
     const uint32_t minor = offset & 0xF;
 
-    switch (major)
+    if (0 < major && major < 7)
     {
-        case 1:
-        case 2:
-        case 3:
-        case 4:
-        case 5:
-        case 6:
-            {
-                Channel& chan = GetChannel(IndexToPort(major));
-                switch (minor)
-                {
-                    case 0:
-                        chan.SetBase(value);
-                        break;
-                    case 4:
-                        chan.SetBlockControl(value);
-                        break;
-                    case 8:
-                        chan.SetControl(value);
-                        break;
-                    default:
-                        assert(false && "Unhandled DMA read");
-                }
-                break;
-            }
-        // Common DMA registers
-        case 7:
+        Channel& chan = GetChannel(IndexToPort(major));
+        switch (minor)
         {
-            switch (minor)
-            {
-                case 0:
-                    SetControl(value);
-                    break;
-                case 4:
-                    SetInterrupt(value);
-                    break;
-                default:
-                    assert(false && "Unhandled DMA read");    
-            }
-            break;
+            case 0:
+                chan.SetBase(value);
+                break;
+            case 4:
+                chan.SetBlockControl(value);
+                break;
+            case 8:
+                chan.SetControl(value);
+                break;
+            default:
+                assert(false && "Unhandled DMA read");
         }
-        default:
-            assert(false && "Unhandled DMA read");
     }
+    else if (major == 7)
+    {
+        // Common DMA registers
+        switch (minor)
+        {
+            case 0:
+                SetControl(value);
+                break;
+            case 4:
+                SetInterrupt(value);
+                break;
+            default:
+                assert(false && "Unhandled DMA read");    
+        }
+    }
+    
+    assert(false && "Unhandled DMA read");
 }
 
 
