@@ -1,5 +1,6 @@
 #include "r3000a.h"
 
+#include "decode.h"
 #include "opcodes.h"
 
 #include "../memory/memorymap.h"
@@ -7,28 +8,6 @@
 #include <cassert>
 #include <limits>
 
-// TODO: This might not work with ExecuteTrappingALU which works on signed integers
-using ALUOperands = std::tuple<uint32_t, uint32_t, uint32_t>;
-
-namespace
-{
-
-ALUOperands DecodeSignExtendedImmediate(const PSEmu::R3000A::Registers& regs, PSEmu::Instruction inst)
-{
-    return { inst.GetRt(), regs[inst.GetRs()], inst.GetImmSe() };
-}
-
-ALUOperands DecodeZeroExtendedImmediate(const PSEmu::R3000A::Registers& regs, PSEmu::Instruction inst)
-{
-    return { inst.GetRt(), regs[inst.GetRs()], inst.GetImm() };
-}
-
-ALUOperands DecodeThreeOperands(const PSEmu::R3000A::Registers& regs, PSEmu::Instruction inst)
-{
-    return { inst.GetRd(), regs[inst.GetRs()], regs[inst.GetRt()] };
-}
-
-}
 
 bool WouldOverflow(int32_t lhs, int32_t rhs, std::function<int32_t(int32_t,int32_t)> func)
 {

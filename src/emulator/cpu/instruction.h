@@ -1,5 +1,5 @@
-#ifndef INSTRUCTIONS_H
-#define INSTRUCTIONS_H
+#ifndef INSTRUCTION_H
+#define INSTRUCTION_H
 
 #include "opcodes.h"
 
@@ -37,4 +37,4 @@ private:
 
 } // end namespace PSEmu
 
-#endif // INSTRUCTIONS_H
+#endif // INSTRUCTION_H

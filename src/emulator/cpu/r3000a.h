@@ -16,9 +16,6 @@ namespace PSEmu
 
 class R3000A
 {
-public:
-    using Registers = std::array<uint32_t, 32>;
-
 private:
     enum class ExceptionCause
     {
@@ -109,8 +106,8 @@ private:
     void ExecuteStore(Instruction inst);
 
 private:
-    Registers m_registers;        /**< CPU registers */
-    Registers m_outputRegisters;  /**< CPU registers */
+    std::array<uint32_t, 32> m_registers;        /**< CPU registers */
+    std::array<uint32_t, 32> m_outputRegisters;  /**< CPU registers */
     uint32_t m_pc;                /**< Program counter. Points to the next instruction */
     uint32_t m_nextPC;            /**< Next value for the PC. Used to simulate the branch delay slot */
     uint32_t m_currentPC;         /**< Address of the instruction currently being executed.
