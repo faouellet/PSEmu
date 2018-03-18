@@ -4,7 +4,6 @@
 #include "../debug/debugger.h"
 #include "instruction.h"
 #include "interconnect.h"
-#include "opcodes.h"
 
 #include <array>
 #include <functional>
