@@ -1,6 +1,8 @@
 #ifndef DECODE_H
 #define DECODE_H
 
+#include "instruction.h"
+
 #include <array>
 #include <tuple>
 
