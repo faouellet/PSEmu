@@ -25,7 +25,7 @@ include_directories(${OPENGL_INCLUDE_DIR})
 find_package(glfw3 REQUIRED)
 
 # glad
-set(GLAD_DIR "3rd party/glad")
+set(GLAD_DIR "${CMAKE_SOURCE_DIR}/3rd party/glad")
 add_library("glad" "${GLAD_DIR}/src/glad.c")
 target_include_directories("glad" PRIVATE "${GLAD_DIR}/include")
 

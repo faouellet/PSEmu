@@ -23,5 +23,7 @@ add_library( emu STATIC
         ${UTILS_SOURCES}
         )
 
+target_include_directories(emu PRIVATE "${GLAD_DIR}/include")
+
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
         
