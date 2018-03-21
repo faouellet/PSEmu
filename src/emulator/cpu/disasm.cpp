@@ -15,7 +15,7 @@ void DisassembleRegisterTypeInstruction(TStream& stream,
                                         Ts&&... regs)
 {
     stream << instOp;
-    ((stream << " R" << regs), ...);
+    ((stream << " $" << regs << ","), ...);
 }
 
 template <typename TStream>
@@ -24,10 +24,10 @@ void DisassembleMemoryInstruction(TStream& stream,
                                   PSEmu::Instruction inst)
 {
     stream << instOp
-           << " R" 
+           << " $" 
            << inst.GetRt() 
            << " " 
-           << std::hex << inst.GetImm() 
+           << std::hex << "0x" << inst.GetImm() 
            << std::dec << " (" 
            << inst.GetRs() 
            << ")";
@@ -40,7 +40,7 @@ void DisassembleImmediateTypeInstruction(TStream& stream,
                                          Ts&&... regs)
 {
     DisassembleRegisterTypeInstruction(stream, std::move(instOp), std::forward<Ts>(regs)...);
-    stream << " " << std::hex << imm;
+    stream << " 0x" << std::hex << imm;
 }
 
 }   // end anoymous namespace

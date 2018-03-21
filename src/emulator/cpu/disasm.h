@@ -8,7 +8,7 @@ namespace PSEmu
 
 class Instruction;
 
-std::string GetDebugString(const Instruction& inst);
+std::string DisassembleInstruction(const Instruction& inst);
 
 }
 

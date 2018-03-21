@@ -2,6 +2,11 @@
 
 #include "opcodes.h"
 
+#ifndef NDEBUG
+#include "disasm.h"
+#include <iostream>
+#endif
+
 #include "../memory/memorymap.h"
 
 #include <cassert>
@@ -77,6 +82,10 @@ void R3000A::Step()
     // Execute any pending load
     SetRegister(m_pendingLoad.first, m_pendingLoad.second);
     m_pendingLoad = {};
+
+#ifndef NDEBUG
+    std::cout << DisassembleInstruction(instToExec);
+#endif
 
     switch(instToExec.GetOp())
     {
