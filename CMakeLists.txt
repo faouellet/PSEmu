@@ -4,6 +4,8 @@ cmake_minimum_required(VERSION 3.5)
 
 project(PSEmu)
 
+option(ENABLE_TESTING "Enable testing" ON)
+
 # Useful for getting VS Code's Intellisense to work 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -30,7 +32,9 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -Werror")
 #target_include_directories("glad" PRIVATE "${GLAD_DIR}/include")
 
 add_subdirectory(src)
-add_subdirectory(test)
+if(ENABLE_TESTING)
+    add_subdirectory(test)
+endif()
 
 set(SOURCE main.cpp)
 
