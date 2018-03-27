@@ -23,6 +23,11 @@ bool BIOS::Init(const std::string& absoluteFilePath)
     return false;
 }
 
+void BIOS::Reset()
+{
+    m_data.clear();
+}
+
 std::vector<uint8_t>& BIOS::GetData() 
 {
     return m_data; 

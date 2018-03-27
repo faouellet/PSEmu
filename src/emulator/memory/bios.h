@@ -25,6 +25,7 @@ public:
 
 public:
     bool Init(const std::string& absoluteFilePath);
+    void Reset();
 
     std::vector<uint8_t>& GetData();
 
