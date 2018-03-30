@@ -43,6 +43,7 @@ public:
 
 public:
     uint32_t GetPC() const;
+    const std::array<uint32_t, 32>& GetRegisters() const;
 
 private:
     void Branch(uint32_t offset);
@@ -105,8 +106,8 @@ private:
     void ExecuteStore(Instruction inst);
 
 private:
-    std::array<uint32_t, 32> m_registers;        /**< CPU registers */
-    std::array<uint32_t, 32> m_outputRegisters;  /**< CPU registers */
+    std::array<uint32_t, 32> m_registers;        /**< CPU registers */  
+    std::array<uint32_t, 32> m_outputRegisters;  /**< CPU registers. Used ti simulate the load delay slot */
     uint32_t m_pc;                /**< Program counter. Points to the next instruction */
     uint32_t m_nextPC;            /**< Next value for the PC. Used to simulate the branch delay slot */
     uint32_t m_currentPC;         /**< Address of the instruction currently being executed.

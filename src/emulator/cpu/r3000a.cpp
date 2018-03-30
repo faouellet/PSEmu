@@ -14,22 +14,26 @@
 
 
 // TODO: This might not work with ExecuteTrappingALU which works on signed integers
-using ALUOperands = std::tuple<uint32_t, uint32_t, uint32_t>;
+template <typename T>
+using ALUOperands = std::tuple<T, T, T>;
 
 namespace
 {
 
-ALUOperands DecodeSignExtendedImmediate(const std::array<uint32_t, 32>& regs, PSEmu::Instruction inst)
+template <typename T>
+ALUOperands<T> DecodeSignExtendedImmediate(const std::array<uint32_t, 32>& regs, PSEmu::Instruction inst)
 {
     return { inst.GetRt(), regs[inst.GetRs()], inst.GetImmSe() };
 }
 
-ALUOperands DecodeZeroExtendedImmediate(const std::array<uint32_t, 32>& regs, PSEmu::Instruction inst)
+template <typename T>
+ALUOperands<T> DecodeZeroExtendedImmediate(const std::array<uint32_t, 32>& regs, PSEmu::Instruction inst)
 {
     return { inst.GetRt(), regs[inst.GetRs()], inst.GetImm() };
 }
 
-ALUOperands DecodeThreeOperands(const std::array<uint32_t, 32>& regs, PSEmu::Instruction inst)
+template <typename T>
+ALUOperands<T> DecodeThreeOperands(const std::array<uint32_t, 32>& regs, PSEmu::Instruction inst)
 {
     return { inst.GetRd(), regs[inst.GetRs()], regs[inst.GetRt()] };
 }
@@ -90,28 +94,28 @@ void R3000A::Step()
     switch(instToExec.GetOp())
     {
         case LUI:     ExecuteLUI(instToExec); break;
-        case ORI:     ExecuteALU(std::bit_or<uint32_t>{}, DecodeZeroExtendedImmediate, instToExec); break;
+        case ORI:     ExecuteALU(std::bit_or<uint32_t>{}, DecodeZeroExtendedImmediate<uint32_t>, instToExec); break;
         case SW:      ExecuteStore<uint32_t>(instToExec); break;
         case SLL:     ExecuteSLL(instToExec); break;
-        case ADDIU:   ExecuteALU(std::plus<uint32_t>{}, DecodeSignExtendedImmediate, instToExec); break;
+        case ADDIU:   ExecuteALU(std::plus<uint32_t>{}, DecodeSignExtendedImmediate<uint32_t>, instToExec); break;
         case J:       ExecuteJ(instToExec); break;
-        case OR:      ExecuteALU(std::bit_or<uint32_t>{}, DecodeThreeOperands, instToExec); break;
+        case OR:      ExecuteALU(std::bit_or<uint32_t>{}, DecodeThreeOperands<uint32_t>, instToExec); break;
         case MTC0:    ExecuteMTC0(instToExec); break;
         case BNE:     ExecuteBNE(instToExec); break;
-        case ADDI:    ExecuteTrappingALU(std::plus<int32_t>{}, std::minus<int32_t>{}, DecodeSignExtendedImmediate, instToExec); break;
+        case ADDI:    ExecuteTrappingALU(std::plus<int32_t>{}, std::minus<int32_t>{}, DecodeSignExtendedImmediate<int32_t>, instToExec); break;
         case LW:      ExecuteLoad<uint32_t>(instToExec); break;
-        case SLTU:    ExecuteALU(std::less<uint32_t>{}, DecodeZeroExtendedImmediate, instToExec); break;
-        case ADDU:    ExecuteALU(std::plus<uint32_t>{}, DecodeZeroExtendedImmediate, instToExec); break;
+        case SLTU:    ExecuteALU(std::less<uint32_t>{}, DecodeZeroExtendedImmediate<uint32_t>, instToExec); break;
+        case ADDU:    ExecuteALU(std::plus<uint32_t>{}, DecodeZeroExtendedImmediate<uint32_t>, instToExec); break;
         case SH:      ExecuteStore<uint16_t>(instToExec); break;
         case JAL:     ExecuteJAL(instToExec); break;
-        case ANDI:    ExecuteALU(std::bit_and<uint32_t>{}, DecodeZeroExtendedImmediate, instToExec); break;
+        case ANDI:    ExecuteALU(std::bit_and<uint32_t>{}, DecodeZeroExtendedImmediate<uint32_t>, instToExec); break;
         case SB:      ExecuteStore<uint8_t>(instToExec); break;
         case JR:      ExecuteJR(instToExec); break;
         case LB:      ExecuteLoad<uint8_t, int8_t>(instToExec); break;
         case BEQ:     ExecuteBEQ(instToExec); break;
         case MFC0:    ExecuteMFC0(instToExec); break;
-        case AND:     ExecuteALU(std::bit_and<uint32_t>{}, DecodeThreeOperands, instToExec); break;
-        case ADD:     ExecuteTrappingALU(std::plus<int32_t>{}, std::minus<int32_t>{}, DecodeThreeOperands, instToExec); break;
+        case AND:     ExecuteALU(std::bit_and<uint32_t>{}, DecodeThreeOperands<uint32_t>, instToExec); break;
+        case ADD:     ExecuteTrappingALU(std::plus<int32_t>{}, std::minus<int32_t>{}, DecodeThreeOperands<int32_t>, instToExec); break;
         case BGTZ:    ExecuteBranch(std::greater<int32_t>{}, instToExec); break;
         case BLEZ:    ExecuteBranch(std::less_equal<int32_t>{}, instToExec); break;
         case LBU:     ExecuteLoad<uint8_t>(instToExec); break;
@@ -121,12 +125,12 @@ void R3000A::Step()
         case BGEZ:    ExecuteBranch(std::greater_equal<int32_t>{}, instToExec); break;
         case BGEZAL:  ExecuteBranchAndLink(std::greater_equal<int32_t>{}, instToExec); break;
         case SLTI:    ExecuteSLTI(instToExec); break;
-        case SUBU:    ExecuteALU(std::minus<uint32_t>{}, DecodeZeroExtendedImmediate, instToExec); break;
+        case SUBU:    ExecuteALU(std::minus<uint32_t>{}, DecodeZeroExtendedImmediate<uint32_t>, instToExec); break;
         case SRA:     ExecuteSRA(instToExec); break;
         case DIV:     ExecuteDIV(instToExec); break;
         case MFLO:    SetRegister(instToExec.GetRd(), m_lo); break;
         case SRL:     ExecuteSRL(instToExec); break;
-        case SLTIU:   ExecuteALU(std::less<uint32_t>{}, DecodeSignExtendedImmediate, instToExec); break;
+        case SLTIU:   ExecuteALU(std::less<uint32_t>{}, DecodeSignExtendedImmediate<uint32_t>, instToExec); break;
         case DIVU:    ExecuteDIVU(instToExec); break;
         case MFHI:    SetRegister(instToExec.GetRd(), m_hi); break;
         case SLT:     ExecuteSLT(instToExec); break;
@@ -141,11 +145,11 @@ void R3000A::Step()
         case SRAV:    ExecuteSRAV(instToExec); break;
         case SRLV:    ExecuteSRLV(instToExec); break;
         case MULTU:   ExecuteMULTU(instToExec); break;
-        case XOR:     ExecuteALU(std::bit_xor<uint32_t>{}, DecodeThreeOperands, instToExec); break;
+        case XOR:     ExecuteALU(std::bit_xor<uint32_t>{}, DecodeThreeOperands<uint32_t>, instToExec); break;
         case BREAK:   TriggerException(ExceptionCause::BREAK); break;
         case MULT:    ExecuteMULT(instToExec); break;
-        case SUB:     ExecuteTrappingALU(std::minus<int32_t>{}, std::plus<int32_t>{}, DecodeThreeOperands, instToExec); break;
-        case XORI:    ExecuteALU(std::bit_xor<uint32_t>{}, DecodeZeroExtendedImmediate, instToExec); break;
+        case SUB:     ExecuteTrappingALU(std::minus<int32_t>{}, std::plus<int32_t>{}, DecodeThreeOperands<int32_t>, instToExec); break;
+        case XORI:    ExecuteALU(std::bit_xor<uint32_t>{}, DecodeZeroExtendedImmediate<uint32_t>, instToExec); break;
         case COP1:    TriggerException(ExceptionCause::COPROCESSOR_ERROR); break;
         case COP2:    assert(false && "Unimplemented instruction"); break;
         case COP3:    TriggerException(ExceptionCause::COPROCESSOR_ERROR); break;
@@ -184,6 +188,11 @@ void R3000A::Reset()
 uint32_t R3000A::GetPC() const
 {
     return m_pc;
+}
+
+const std::array<uint32_t, 32>& R3000A::GetRegisters() const
+{
+    return m_registers;
 }
 
 void R3000A::Branch(uint32_t offset)
