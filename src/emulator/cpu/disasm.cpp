@@ -28,7 +28,7 @@ void DisassembleMemoryInstruction(TStream& stream,
            << inst.GetRt() 
            << " " 
            << std::hex << "0x" << inst.GetImm() 
-           << std::dec << " (" 
+           << std::dec << " ($" 
            << inst.GetRs() 
            << ")";
 }
@@ -57,7 +57,7 @@ std::string DisassembleInstruction(const Instruction& inst)
         case LUI:     DisassembleImmediateTypeInstruction(instStream, "LUI", inst.GetImm(), inst.GetRt()); break;
         case ORI:     DisassembleImmediateTypeInstruction(instStream, "ORI", inst.GetImm(), inst.GetRt(), inst.GetRs()); break;
         case SW:      DisassembleMemoryInstruction(instStream, "SW", inst); break;
-        case SLL:     DisassembleImmediateTypeInstruction(instStream, "ORI", inst.GetShamt(), inst.GetRd(), inst.GetRs()); break;
+        case SLL:     DisassembleImmediateTypeInstruction(instStream, "SLL", inst.GetShamt(), inst.GetRd(), inst.GetRs()); break;
         case ADDIU:   DisassembleImmediateTypeInstruction(instStream, "ADDIU", inst.GetImm(), inst.GetRt(), inst.GetRs()); break;
         case J:       DisassembleImmediateTypeInstruction(instStream, "J", inst.GetImmJump()); break;
         case OR:      DisassembleRegisterTypeInstruction(instStream, "OR", inst.GetRd(), inst.GetRs(), inst.GetRt()); break;
