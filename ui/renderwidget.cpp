@@ -10,7 +10,7 @@ RenderWidget::RenderWidget(QWidget* parent) :
     Q_INIT_RESOURCE(resources);
 }
 
-void RenderWidget::paintEvent(QPaintEvent* event)
+void RenderWidget::paintEvent(QPaintEvent*)
 {
     QPainter painter{this};
     painter.fillRect(rect(), Qt::black);

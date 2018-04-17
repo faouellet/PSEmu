@@ -4,6 +4,7 @@ project(EmuUI LANGUAGES CXX)
 find_package(Qt5Core REQUIRED)
 find_package(Qt5Widgets REQUIRED)
 
+set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
 add_library(ui mainwindow.cpp debugwindow.cpp renderwidget.cpp resources.qrc)
