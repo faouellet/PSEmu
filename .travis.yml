@@ -8,6 +8,7 @@ sudo: false
 dist: trusty
 
 cache:
+  ccache: true
   directories:
   - ${TRAVIS_BUILD_DIR}/deps
 
@@ -33,6 +34,11 @@ matrix:
     #      - clang-5.0
     #  env: COMPILER=clang++-5.0
 
+before_install:
+  - sudo add-apt-repository --yes ppa:ubuntu-sdk-team/ppa
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq qt5-qmake qtbase5-dev qttools5-dev-tools
+
 script: 
   - mkdir build
   - cd build
@@ -44,4 +50,4 @@ notifications:
   - faouellet@gmail.com
   email:
     on_success: change
-    on_failure: always
+    on_failure: change
