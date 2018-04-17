@@ -16,7 +16,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -Werror")
 
 add_subdirectory(src)
 if(ENABLE_TESTING)
-    add_subdirectory(test)
+    #add_subdirectory(test)
 endif()
 
 set(SOURCE main.cpp)
